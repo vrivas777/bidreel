@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<!--
+  BidReel — VFX Bidding
+  A free, offline, single-file VFX bidding tool for the film & VFX community.
+
+  Created by Victor Rivas — Founder, CEO & VFX Supervisor, Lacus Post
+  HPA Award for Best Visual Effects (The One and Only Ivan)
+  https://www.v-rivas.com
+
+  Released under the MIT License. See LICENSE.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Victor Rivas — Lacus Post">
+<meta name="description" content="BidReel — a free, offline, single-file VFX bidding tool for the film & VFX community.">
+<title>BidReel — VFX Bidding</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#14181b; --bg2:#1a2025; --panel:#1e262c; --panel2:#232d34;
+  --line:#2c363d; --line2:#38454e;
+  --ink:#e8eef2; --mut:#8b9aa5; --dim:#63727c;
+  --gold:#e0a63c; --gold-dim:#a97e2f; --gold-soft:#3a2f18;
+  --teal:#49cbb8; --teal-soft:#123028;
+  --red:#e5726b; --red-soft:#3a1d1c;
+  --radius:8px; --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+button{font-family:inherit;cursor:pointer}
+input,select{font-family:inherit;color-scheme:dark}
+::selection{background:var(--gold);color:#14181b}
+
+.topbar{display:flex;align-items:center;gap:14px;padding:10px 18px;background:linear-gradient(180deg,#1b2228,#161b20);border-bottom:1px solid var(--line);flex:0 0 auto}
+.brand{display:flex;align-items:center;gap:9px;min-width:0}
+.brand .mark{width:22px;height:22px;border-radius:6px;flex:0 0 auto;background:conic-gradient(from 210deg,var(--gold),#f0c766,var(--gold-dim),var(--gold));box-shadow:0 0 0 1px #00000040 inset}
+.brand input{background:transparent;border:0;color:var(--ink);font-weight:700;font-size:15px;letter-spacing:.1em;text-transform:uppercase;width:300px;padding:2px 4px;border-radius:5px}
+.brand input:focus{outline:none;background:#0d1013}
+.sub{color:var(--gold);font-size:12px;letter-spacing:.22em;text-transform:uppercase;font-weight:700}
+.spacer{flex:1}
+.tbtn{background:#232d34;border:1px solid var(--line2);color:var(--mut);padding:7px 12px;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:.03em;transition:.15s}
+.tbtn:hover{color:var(--ink);border-color:var(--gold-dim)}
+.tbtn.gold{background:var(--gold);border-color:var(--gold);color:#161b20}
+.tbtn.gold:hover{background:#f0bb55}
+
+.shell{display:flex;flex:1;min-height:0}
+.rail{width:190px;flex:0 0 auto;background:var(--bg2);border-right:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:3px}
+.rail .eyebrow{color:var(--dim);font-size:10px;letter-spacing:.2em;text-transform:uppercase;padding:6px 10px 10px}
+.navitem{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:7px;color:var(--mut);font-weight:600;font-size:13px;border:1px solid transparent;transition:.14s}
+.navitem .n{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.navitem:hover{background:#20282e;color:var(--ink)}
+.navitem.on{background:#20282e;color:var(--ink);border-color:var(--line2)}
+.navitem.on .n{color:var(--gold)}
+.rail .foot{margin-top:auto;color:var(--dim);font-size:10.5px;line-height:1.5;padding:10px}
+
+.main{flex:1;min-width:0;overflow:auto;padding:22px 26px 30px}
+.panel{display:none;animation:fade .22s ease}
+.panel.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.panel.on{animation:none}}
+
+.h1{font-size:19px;font-weight:700;margin:0 0 3px}
+.lead{color:var(--mut);font-size:12.5px;margin:0 0 20px;max-width:78ch}
+.sec{display:flex;align-items:center;gap:10px;margin:26px 0 12px}
+.sec h2{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin:0;font-weight:700}
+.sec .rule{height:1px;background:var(--line);flex:1}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px 16px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.wide{grid-column:1 / -1;max-width:660px}
+.field label{color:var(--mut);font-size:11px;letter-spacing:.04em;font-weight:600}
+.field .hint{color:var(--dim);font-size:10px}
+input.in,select.in{background:#0f1417;border:1px solid var(--line2);color:var(--ink);padding:9px 10px;border-radius:6px;font-size:13px;width:100%;transition:.14s}
+input.in:focus,select.in:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-soft)}
+input.num{font-family:var(--mono);text-align:right}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
+.jurnote{color:var(--dim);font-size:11px;line-height:1.5;background:#161d22;border:1px solid var(--line);border-left:3px solid var(--gold-dim);border-radius:6px;padding:9px 11px;margin-top:2px}
+.switch{position:relative;display:inline-flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.switch input{position:absolute;opacity:0;width:0;height:0}
+.track{width:44px;height:24px;border-radius:999px;background:#2c363d;border:1px solid var(--line2);position:relative;transition:.15s;flex:0 0 auto}
+.track::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--mut);transition:.15s}
+.switch input:checked + .track{background:var(--gold-soft);border-color:var(--gold-dim)}
+.switch input:checked + .track::after{background:var(--gold);transform:translateX(20px)}
+.swlbl{font-size:12.5px;font-weight:600;color:var(--ink)}
+
+.tbar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.tbar .count{color:var(--dim);font-size:12px;font-family:var(--mono)}
+.addbtn{background:var(--teal-soft);border:1px solid #2a5a50;color:var(--teal);padding:8px 14px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:.03em}
+.addbtn:hover{background:#164036}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:6px;overflow:hidden}
+.seg button{background:#232d34;color:var(--mut);border:0;padding:7px 13px;font-size:12px;font-weight:600}
+.seg button.on{background:var(--gold);color:#161b20}
+.tscroll{overflow:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:12px}
+th,td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:0;white-space:nowrap}
+thead th{background:#263038;color:var(--mut);font-weight:700;font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:9px 8px;position:sticky;top:0;z-index:3;text-align:center;vertical-align:bottom}
+thead th.dept{writing-mode:vertical-rl;transform:rotate(180deg);height:96px;padding:8px 4px;font-size:9.5px;letter-spacing:.02em}
+thead th.compute{color:var(--gold)}
+tbody td{background:var(--panel)}
+tbody tr:hover td{background:var(--panel2)}
+td input{background:transparent;border:0;color:var(--ink);padding:8px 8px;width:100%;font-size:12px;text-overflow:ellipsis}
+td.day input,td.money{font-family:var(--mono);text-align:right}
+td input:focus{outline:none;background:#0f1417;box-shadow:inset 0 0 0 1px var(--gold)}
+td.money{padding:8px 10px;text-align:right;color:var(--mut)}
+td.total{font-family:var(--mono);text-align:right;padding:8px 10px;color:var(--gold);font-weight:700;background:#20282e}
+td select.kindsel,td select.basissel{background:#0f1417;border:1px solid var(--line2);color:var(--ink);border-radius:5px;padding:5px 6px;font-size:11px;margin:4px}
+.stick{position:sticky;z-index:2}
+.c-idx{left:0;width:38px;min-width:38px;text-align:center;color:var(--dim);font-family:var(--mono)}
+.c-thumb{left:38px;width:56px;min-width:56px;text-align:center}
+.c-name{left:94px;width:184px;min-width:184px}
+thead .c-idx,thead .c-thumb,thead .c-name{z-index:4}
+td.c-name input{font-weight:600}
+td.tcell input{padding-left:10px}
+.thumbbox{width:48px;height:30px;margin:2px auto;border:1px solid var(--line2);border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#0f1417;cursor:pointer}
+.thumbbox:hover{border-color:var(--gold-dim)}
+.thumbbox img{width:100%;height:100%;object-fit:cover}
+.thumbbox .ph{font-size:9px;color:var(--dim)}
+.del{background:transparent;border:0;color:var(--dim);font-size:15px;padding:4px 9px;border-radius:5px}
+.del:hover{color:var(--red);background:var(--red-soft)}
+td.act{width:40px;text-align:center;background:var(--panel)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
+.card .k{color:var(--mut);font-size:11px;letter-spacing:.05em;text-transform:uppercase;font-weight:600}
+.card .v{font-family:var(--mono);font-size:24px;font-weight:700;margin-top:8px;letter-spacing:-.02em}
+.card.hero{background:linear-gradient(160deg,#241d10,#1c2228);border-color:var(--gold-dim)}
+.card.hero .v{color:var(--gold);font-size:30px}
+.card .d{color:var(--dim);font-size:11px;margin-top:5px;font-family:var(--mono)}
+.card.teal .v{color:var(--teal)}
+.card.red .v{color:var(--red)}
+
+.chartwrap{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin-bottom:18px;max-width:980px}
+.chartwrap h3{margin:0 0 3px;font-size:13px}
+.chartwrap p{margin:0 0 10px;color:var(--dim);font-size:11px}
+.chartcap{margin-top:8px;font-size:12px;color:var(--mut)}
+.chartcap b{color:var(--ink)}
+#p-charts svg text,#p-compare svg text{font-family:var(--sans)}
+
+.readout{flex:0 0 auto;display:flex;align-items:center;background:linear-gradient(180deg,#191f24,#12171a);border-top:1px solid var(--line2);padding:0 6px;height:62px}
+.ro{display:flex;flex-direction:column;justify-content:center;padding:0 20px;height:100%;flex:1;min-width:0}
+.ro + .ro{border-left:1px solid var(--line)}
+.ro .k{color:var(--dim);font-size:10px;letter-spacing:.16em;text-transform:uppercase}
+.ro .v{font-family:var(--mono);font-size:19px;font-weight:700;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ro.rebate .v{color:var(--teal)}
+.ro.final{background:#20262c;flex:1.3}
+.ro.final .k{color:var(--gold)}
+.ro.final .v{color:var(--gold);font-size:22px}
+.ro.final .v.neg{color:var(--red)}
+.ro .cur{color:var(--dim);font-size:11px;font-weight:400;margin-left:6px}
+
+.note{background:#1a2228;border:1px solid var(--line);border-left:3px solid var(--gold-dim);border-radius:6px;padding:12px 14px;color:var(--mut);font-size:12px;line-height:1.6;margin-top:8px}
+.note.warn{border-left-color:var(--red)}
+.note b{color:var(--ink)}
+.file{display:none}
+
+#printDoc{display:none}
+@media print{.topbar,.shell,.readout{display:none!important}html,body{height:auto;overflow:visible;background:#fff}#printDoc{display:block!important}@page{margin:13mm}}
+#printDoc{color:#1c1c1c;background:#fff;font-family:var(--sans);font-size:11px;line-height:1.5}
+#printDoc .lh{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #b7791f;padding-bottom:12px;margin-bottom:14px}
+#printDoc .studio{font-size:22px;font-weight:800;color:#b7791f;letter-spacing:.02em}
+#printDoc .loc{color:#555;font-size:10px;margin-top:3px}
+#printDoc .doctype{font-size:26px;font-weight:800;color:#b7791f;text-align:right;line-height:1}
+#printDoc .doctype small{display:block;font-size:10px;color:#666;font-weight:600;letter-spacing:.14em;text-transform:uppercase;margin-top:4px}
+#printDoc h3{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#b7791f;margin:18px 0 6px;border-bottom:1px solid #e6e0d2;padding-bottom:4px}
+#printDoc table{width:100%;border-collapse:collapse;margin:4px 0 6px;font-size:10.5px}
+#printDoc th{background:#f3efe6;color:#7a5b1e;border:1px solid #ddd6c7;padding:5px 7px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.03em}
+#printDoc td{border:1px solid #e6e1d5;padding:5px 7px;vertical-align:top;background:#fff;color:#1c1c1c}
+#printDoc td.n,#printDoc th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+#printDoc tr.tot td{background:#faf6ec;font-weight:700}
+#printDoc .meta{display:grid;grid-template-columns:1fr 1fr;gap:2px 26px;margin:2px 0 6px}
+#printDoc .meta div{display:flex;justify-content:space-between;border-bottom:1px dotted #e0dac9;padding:3px 0}
+#printDoc .meta .lab{color:#666}
+#printDoc .meta .val{font-weight:600;color:#222}
+#printDoc .cover{color:#333;margin:8px 0 4px}
+#printDoc .grand{background:#b7791f;color:#fff;font-weight:800}
+#printDoc .grand td{border-color:#a97e2f;color:#fff;background:#b7791f}
+#printDoc .foot{margin-top:16px;color:#888;font-size:9px;border-top:1px solid #e6e0d2;padding-top:8px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="mark"></span>
+    <input id="studioName" value="YOUR STUDIO NAME" spellcheck="false" title="Your studio (editable)"></div>
+  <span class="sub">BidReel</span>
+  <div class="spacer"></div>
+  <button class="tbtn" onclick="newBid()">New</button>
+  <button class="tbtn" onclick="loadBid()">Load</button>
+  <button class="tbtn" onclick="saveBid()">Save bid</button>
+  <button class="tbtn" onclick="exportCSV()">Export CSV</button>
+  <button class="tbtn gold" onclick="exportPDF()">Export PDF</button>
+  <input type="file" id="fileInput" class="file" accept=".json" onchange="handleFile(event)">
+  <input type="file" id="thumbInput" class="file" accept="image/*" onchange="handleThumb(event)">
+</div>
+
+<div class="shell">
+  <nav class="rail">
+    <div class="eyebrow">Bid</div>
+    <div class="navitem on" data-tab="project"><span class="n">01</span> Project</div>
+    <div class="navitem" data-tab="rates"><span class="n">02</span> Rates &amp; roles</div>
+    <div class="navitem" data-tab="assets"><span class="n">03</span> Assets</div>
+    <div class="navitem" data-tab="shots"><span class="n">04</span> Shots</div>
+    <div class="navitem" data-tab="totals"><span class="n">05</span> Totals</div>
+    <div class="navitem" data-tab="charts"><span class="n">06</span> Charts</div>
+    <div class="navitem" data-tab="compare"><span class="n">07</span> Compare</div>
+    <div class="foot">Offline &middot; single file.<br>Your data stays on your machine.<br>Save a <b>.json</b> to use it on another computer.<br><br>By <a href="https://www.v-rivas.com" target="_blank" rel="noopener" style="color:var(--gold-dim);text-decoration:none">Victor Rivas</a> &middot; Lacus Post</div>
+  </nav>
+
+  <main class="main">
+    <section class="panel on" id="p-project">
+      <h1 class="h1">Project information</h1>
+      <p class="lead">Fill in the bid details. Everything else is calculated from here.</p>
+      <div class="sec"><h2>Project</h2><span class="rule"></span></div>
+      <div class="grid" id="proj-grid-1"></div>
+      <div class="sec"><h2>Dates</h2><span class="rule"></span></div>
+      <div class="grid" id="proj-grid-2"></div>
+      <div class="sec"><h2>Financial &amp; Tax Rebate</h2><span class="rule"></span></div>
+      <div class="grid" id="proj-grid-3"></div>
+      <div class="sec"><h2>Payment schedule</h2><span class="rule"></span></div>
+      <p class="lead" style="margin:0 0 10px">Edit the milestones and percentages (any split you like &mdash; they must total 100%). This feeds the PDF and the cash-flow chart.</p>
+      <div id="pay-body"></div>
+      <div class="note" style="margin-top:20px"><b>Estimated rebate</b> = labor base &times; % work in jurisdiction &times; rebate %.
+      Rates are current headline VFX incentives (2025&ndash;2026), estimates only &mdash; confirm with the jurisdiction and your production accountant.</div>
+    </section>
+
+    <section class="panel" id="p-rates">
+      <h1 class="h1">Rates &amp; roles</h1>
+      <p class="lead">Departments are billed per day inside each asset/shot. Roles (Producer, Supervisor, Coordinator, on-set&hellip;) are billed by time and added to the grand total.</p>
+      <div class="tbar"><button class="addbtn" onclick="addDept()">+ Add department</button><span class="count" id="deptCount"></span></div>
+      <div class="tscroll" style="max-width:860px"><table id="ratesTable"></table></div>
+      <div class="sec"><h2>Overhead &amp; setup</h2><span class="rule"></span></div>
+      <div class="grid" id="rates-grid"></div>
+      <div class="sec"><h2>Roles, supervision &amp; production</h2><span class="rule"></span></div>
+      <p class="lead" style="margin:0 0 10px">Add any role billed by time: VFX Producer, VFX Supervisor, Coordinator, Editorial, I/O, on-set crew&hellip; Total = rate &times; (1 + markup) &times; quantity.</p>
+      <div class="tbar"><button class="addbtn" onclick="addRole()">+ Add role</button><span class="count" id="roleCount"></span></div>
+      <div class="tscroll" style="max-width:820px"><table id="rolesTable"></table></div>
+    </section>
+
+    <section class="panel" id="p-assets">
+      <h1 class="h1">Assets</h1>
+      <p class="lead">One row per asset. Enter days per department (Detailed view); switch to Summary for a clean read. Add a thumbnail to identify each item fast.</p>
+      <div class="tbar"><button class="addbtn" onclick="addRow('assets')">+ Add asset</button><span class="count" id="assetsCount"></span>
+        <span class="spacer"></span><span class="seg" id="assetsSeg"><button data-v="detailed">Detailed</button><button data-v="summary">Summary</button></span></div>
+      <div class="tscroll"><table id="assetsTable"></table></div>
+    </section>
+
+    <section class="panel" id="p-shots">
+      <h1 class="h1">Shots</h1>
+      <p class="lead">One row per shot (or template). Thumbnails help you and the client identify shots at a glance &mdash; upload an image or paste a link.</p>
+      <div class="tbar"><button class="addbtn" onclick="addRow('shots')">+ Add shot</button><span class="count" id="shotsCount"></span>
+        <span class="spacer"></span><span class="seg" id="shotsSeg"><button data-v="detailed">Detailed</button><button data-v="summary">Summary</button></span></div>
+      <div class="tscroll"><table id="shotsTable"></table></div>
+    </section>
+
+    <section class="panel" id="p-totals">
+      <h1 class="h1">Totals</h1>
+      <p class="lead">Summary of the whole bid. Everything updates live as you edit.</p>
+      <div class="cards" id="totalCards"></div>
+      <div class="sec"><h2>Breakdown by department</h2><span class="rule"></span></div>
+      <div class="tscroll" style="max-width:820px"><table id="deptTable"></table></div>
+    </section>
+
+    <section class="panel" id="p-charts">
+      <h1 class="h1">Charts</h1>
+      <p class="lead">Visual breakdown of the current bid. Refreshes each time you open this tab.</p>
+      <div class="chartwrap"><h3>Bid days by department</h3><p>Days allocated per department &mdash; assets vs shots.</p><div id="chartDays"></div><div class="chartcap" id="capDays"></div></div>
+      <div class="chartwrap"><h3>Cost by department</h3><p>Labor + compute cost per department. The highest bar is highlighted.</p><div id="chartCost"></div><div class="chartcap" id="capCost"></div></div>
+      <div class="chartwrap"><h3>Projected cash flow (estimate)</h3><p>Cumulative client payments (from your payment schedule), cost burn and running balance.</p><div id="chartCash"></div></div>
+    </section>
+
+    <section class="panel" id="p-compare">
+      <h1 class="h1">Compare bids</h1>
+      <p class="lead">Compare the bid you're working on (A) against a second saved bid (B). Load a <b>.json</b> you saved earlier.</p>
+      <div id="compareBody"></div>
+      <input type="file" id="fileB" class="file" accept=".json" onchange="handleFileB(event)">
+    </section>
+  </main>
+</div>
+
+<div class="readout" id="readout"></div>
+<div id="printDoc"></div>
+
+<script>
+"use strict";
+const DEFAULT_DEPTS=[
+ {name:"Software Dev",avg:750,mk:1,kind:"labor"},{name:"Concept Design",avg:750,mk:1,kind:"labor"},
+ {name:"PreVis / Layout",avg:750,mk:1,kind:"labor"},{name:"Tracking / Mmove",avg:750,mk:1,kind:"labor"},
+ {name:"Matte Painting",avg:750,mk:1,kind:"labor"},{name:"Modeling",avg:750,mk:1,kind:"labor"},
+ {name:"Texturing",avg:750,mk:1,kind:"labor"},{name:"Rigging",avg:750,mk:1,kind:"labor"},
+ {name:"3D Animation",avg:750,mk:1,kind:"labor"},{name:"Character Animation",avg:750,mk:1,kind:"labor"},
+ {name:"Crowds",avg:750,mk:1,kind:"labor"},{name:"Fluids",avg:750,mk:1,kind:"labor"},
+ {name:"FX / Creature FX",avg:800,mk:1.2,kind:"labor"},{name:"Lighting / Look Dev",avg:750,mk:1,kind:"labor"},
+ {name:"Roto / Paint",avg:750,mk:1,kind:"labor"},{name:"Comp",avg:750,mk:1,kind:"labor"},
+ {name:"Compute",avg:500,mk:0.2,kind:"compute"}];
+const DEFAULT_NAMES=DEFAULT_DEPTS.map(d=>d.name);
+const BASES=["Day","Week","Month","Flat"];
+
+const JURISDICTIONS=[
+ {name:"Custom / None", rebate:0.00, note:"Enter your own rebate rate in the field below."},
+ {name:"California (US)", rebate:0.35, note:"Program 4.0 (Jul 2025): 35% refundable base, up to 40% for VFX or shooting outside the LA zone. Below-the-line only."},
+ {name:"New York (US)", rebate:0.30, note:"30% refundable on VFX/animation (NY Metro); 35% outside the metro area; +10% labor uplift in select upstate counties."},
+ {name:"Georgia (US)", rebate:0.30, note:"20% base + 10% Georgia logo uplift = 30% transferable, no cap. Credits typically sell at ~89-92c on the dollar."},
+ {name:"Texas (US)", rebate:0.25, note:"SB 22 (Sep 2025) cash grant: tiered up to 25%, up to 31% with uplifts. VFX projects: $250K minimum spend."},
+ {name:"Pennsylvania (US)", rebate:0.25, note:"25% transferable, up to 30% with the stage bonus. 60% of total spend must be in PA."},
+ {name:"Oregon (US)", rebate:0.25, note:"OPIF/iOFIP rebate: 25% of Oregon goods & services, plus up to 26.2% of local payroll."},
+ {name:"Nashville / Tennessee (US)", rebate:0.25, note:"Tennessee Entertainment Commission grant: up to 25% of qualified in-state spend (min $500K). Standalone post eligible."},
+ {name:"Puerto Rico (US)", rebate:0.40, note:"40% transferable on resident/local spend; 20% on qualified non-resident labor."},
+ {name:"Vancouver / BC (Canada)", rebate:0.52, note:"PSTC 36% + DAVE 16% on qualifying BC VFX/post labour (refundable). Federal PSTC ~16% can stack. PP after Dec 31 2024."},
+ {name:"Montreal / Quebec (Canada)", rebate:0.36, note:"QPSTC 25% all-spend + 16% VFX/CGI labour bonus (bonus capped at 65% of the VFX service contract)."},
+ {name:"United Kingdom", rebate:0.2925, note:"AVEC enhanced VFX: 39% headline, net 29.25% receivable after corporation tax. UK VFX exempt from the 80% cap."},
+ {name:"Australia", rebate:0.30, note:"Federal PDV Offset: 30% refundable on VFX/post QAPE (min A$500K). State incentives (e.g. NSW +10%) can stack to ~40%."}
+];
+
+function blankDaysN(n){return new Array(n).fill(0);}
+function seed(name,type,diff,map){const d=blankDaysN(DEFAULT_DEPTS.length);
+  for(const k in map){const idx=DEFAULT_NAMES.indexOf(k);if(idx>=0)d[idx]=map[k];}
+  return {name,type,diff,notes:"",thumb:"",days:d};}
+function sampleAssets(){return [
+  seed("Nightshade_Tower","2D DMP","Medium",{"Concept Design":2,"Matte Painting":4,"Lighting / Look Dev":5,"Comp":6,"Compute":15}),
+  seed("Abyssal_Kraken","3D Hero","Hero",{"Concept Design":3,"Modeling":6,"Texturing":5,"Rigging":4,"FX / Creature FX":6,"Lighting / Look Dev":6,"Comp":6,"Compute":22}),
+  seed("Nebula_Drake","3D Creature","Low",{"Modeling":3,"Texturing":2,"Lighting / Look Dev":3,"Comp":3,"Compute":10})];}
+function sampleShots(){return [
+  seed("ep101_10_0340","2D Comp","Low",{"Tracking / Mmove":2,"Roto / Paint":3,"Comp":8,"Compute":18}),
+  seed("ep101_20_0910","FX Shot","High",{"Tracking / Mmove":1,"FX / Creature FX":6,"Lighting / Look Dev":4,"Comp":6,"Compute":24}),
+  seed("ep101_40_1730","3D Comp","Medium",{"Tracking / Mmove":2,"Matte Painting":3,"3D Animation":4,"Lighting / Look Dev":3,"Comp":8,"Compute":30})];}
+function defaultState(){return {
+  studio:"YOUR STUDIO NAME",
+  project:{name:"JUR21",client:"NETFLIX",bidNo:"1",bidType:"Script bid",prodType:"TV Episodic",
+    director:"Director",clientSup:"Client Supervisor",clientProd:"Client Producer",currency:"USD",
+    startDate:"2026-11-16",deliveryDate:"2027-01-15",bidDue:"2026-09-10",workDays:45,taxRate:0.05,
+    jurisdiction:"Custom / None",workPct:1.0,rebatePct:0.30,discount:0,applyRebate:false},
+  departments:DEFAULT_DEPTS.map(d=>({...d})),
+  overheadPerDay:1000,setupPerMember:200,teamMembers:null,assetMarkup:0.05,
+  roles:[
+    {role:"On-Set VFX Supervisor",rate:1900,mk:0.20,basis:"Day",qty:12},
+    {role:"On-Set Data Wrangler",rate:500,mk:0.50,basis:"Day",qty:12},
+    {role:"VFX Producer",rate:6000,mk:0,basis:"Week",qty:8},
+    {role:"VFX Supervisor (post)",rate:7500,mk:0,basis:"Week",qty:8},
+    {role:"VFX Coordinator",rate:3500,mk:0,basis:"Week",qty:8}],
+  payments:[{label:"Deposit — prior to start",pct:0.50},{label:"On delivery of first block",pct:0.25},{label:"Final delivery & acceptance",pct:0.25}],
+  assets:sampleAssets(),shots:sampleShots()};}
+
+const LS_KEY="bidreel_v1";
+let state, stateB=null, assetsView="detailed", shotsView="detailed", thumbTarget=null;
+try{const raw=localStorage.getItem(LS_KEY);state=raw?migrate(JSON.parse(raw)):defaultState();}
+catch(e){state=defaultState();}
+function autosave(){try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){}}
+
+function migrate(s){
+  const d=defaultState();
+  const hadDepts=Array.isArray(s.departments);
+  const oldRates=Array.isArray(s.rates)?s.rates:null;
+  s=Object.assign({},d,s);
+  s.project=Object.assign({},d.project,s.project||{});
+  if(!hadDepts){s.departments=DEFAULT_DEPTS.map((dd,i)=>({name:dd.name,
+    avg:oldRates&&oldRates[i]?(+oldRates[i].avg||dd.avg):dd.avg,
+    mk:oldRates&&oldRates[i]?(+oldRates[i].mk||dd.mk):dd.mk,kind:dd.kind}));}
+  s.departments=(s.departments||[]).map(x=>({name:String(x.name||"Dept"),avg:+x.avg||0,mk:+x.mk||0,kind:x.kind==="compute"?"compute":"labor"}));
+  if(!s.departments.length)s.departments=DEFAULT_DEPTS.map(dd=>({...dd}));
+  const n=s.departments.length;
+  if(!Array.isArray(s.assets))s.assets=[];if(!Array.isArray(s.shots))s.shots=[];
+  [...s.assets,...s.shots].forEach(r=>{if(!Array.isArray(r.days))r.days=blankDaysN(n);
+    if(r.days.length<n)r.days=r.days.concat(new Array(n-r.days.length).fill(0));
+    if(r.days.length>n)r.days=r.days.slice(0,n);
+    r.days=r.days.map(v=>+v||0); if(r.thumb==null)r.thumb="";});
+  if(!Array.isArray(s.roles)){s.roles=Array.isArray(s.onset)
+    ? s.onset.map(o=>({role:o.role,rate:+o.avg||0,mk:+o.mk||0,basis:"Day",qty:+o.days||0}))
+    : d.roles;}
+  s.roles=s.roles.map(o=>({role:String(o.role||"Role"),rate:+o.rate||0,mk:+o.mk||0,basis:BASES.includes(o.basis)?o.basis:"Day",qty:+o.qty||0}));
+  if(!Array.isArray(s.payments)||!s.payments.length)s.payments=d.payments;
+  s.payments=s.payments.map(m=>({label:String(m.label||"Milestone"),pct:+m.pct||0}));
+  if(s.teamMembers===undefined)s.teamMembers=null;
+  delete s.rates;delete s.onset;
+  return s;
+}
+
+/* ---- calc engine ---- */
+function bidRateOf(st,i){const r=st.departments[i];return (+r.avg||0)*(1+(+r.mk||0));}
+function rowLaborOf(st,row){let s=0;st.departments.forEach((d,i)=>{if(d.kind!=='compute')s+=(+row.days[i]||0)*bidRateOf(st,i);});return s;}
+function rowComputeOf(st,row){let s=0;st.departments.forEach((d,i)=>{if(d.kind==='compute')s+=(+row.days[i]||0)*bidRateOf(st,i);});return s;}
+function rowTotalOf(st,row){return (rowLaborOf(st,row)+rowComputeOf(st,row))*(1+(+st.assetMarkup||0));}
+function rowDaysOf(row){return (row.days||[]).reduce((a,b)=>a+(+b||0),0);}
+function roleTotal(o){return (+o.rate||0)*(1+(+o.mk||0))*(+o.qty||0);}
+function computeBid(st){
+  const p=st.project;
+  const assetsTotal=st.assets.reduce((a,r)=>a+rowTotalOf(st,r),0);
+  const shotsTotal=st.shots.reduce((a,r)=>a+rowTotalOf(st,r),0);
+  const laborBase=st.assets.reduce((a,r)=>a+rowLaborOf(st,r),0)+st.shots.reduce((a,r)=>a+rowLaborOf(st,r),0);
+  const totalDays=st.assets.reduce((a,r)=>a+rowDaysOf(r),0)+st.shots.reduce((a,r)=>a+rowDaysOf(r),0);
+  const wd=+p.workDays||0;
+  const overhead=(+st.overheadPerDay||0)*wd;
+  const newMembersAuto=wd>0?totalDays/wd:0;
+  const tm=st.teamMembers;
+  const newMembers=(tm!==null&&tm!==undefined&&tm!==""&&!isNaN(+tm))?+tm:newMembersAuto;
+  const setup=(+st.setupPerMember||0)*newMembers;
+  const roles=st.roles.reduce((a,o)=>a+roleTotal(o),0);
+  const grand=assetsTotal+shotsTotal+overhead+setup+roles;
+  const rebate=laborBase*(+p.workPct||0)*(+p.rebatePct||0);
+  const rebateApplied=p.applyRebate!==false;
+  const afterRebate=grand-(rebateApplied?rebate:0);
+  const afterDiscount=afterRebate-(+p.discount||0);
+  return {assetsTotal,shotsTotal,laborBase,totalDays,overhead,newMembers,newMembersAuto,setup,roles,grand,rebate,rebateApplied,afterRebate,afterDiscount};
+}
+function bidRate(i){return bidRateOf(state,i);}
+function rowLabor(r){return rowLaborOf(state,r);}
+function rowCompute(r){return rowComputeOf(state,r);}
+function rowTotal(r){return rowTotalOf(state,r);}
+function calc(){return computeBid(state);}
+
+function moneyOf(st,n){const cur=st.project.currency||"USD";
+  try{return new Intl.NumberFormat("en-US",{style:"currency",currency:cur,maximumFractionDigits:0}).format(n||0);}
+  catch(e){return Math.round(n||0).toLocaleString("en-US")+" "+cur;}}
+function money(n){return moneyOf(state,n);}
+function num(n,d=1){return (n||0).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});}
+function pct(n){return ((n||0)*100).toFixed(1)+"%";}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+/* ---- fields ---- */
+function field(label,value,type,onInput,opts={}){
+  const wrap=document.createElement("div");wrap.className="field"+(opts.wide?" wide":"");
+  const lab=document.createElement("label");lab.textContent=label;wrap.appendChild(lab);
+  let el;
+  if(type==="select"){el=document.createElement("select");el.className="in";
+    opts.options.forEach(o=>{const op=document.createElement("option");op.value=o;op.textContent=o;if(o===value)op.selected=true;el.appendChild(op);});}
+  else{el=document.createElement("input");el.className="in"+(opts.num?" num":"");el.type=type;el.value=value;
+    if(opts.step)el.step=opts.step;if(opts.placeholder!=null)el.placeholder=opts.placeholder;}
+  el.addEventListener("input",()=>{onInput(el.value);autosave();updateReadout();});
+  if(opts.id)el.id=opts.id;wrap.appendChild(el);
+  if(opts.hint){const h=document.createElement("div");h.className="hint";h.textContent=opts.hint;wrap.appendChild(h);}
+  return wrap;
+}
+const P=state.project;
+function renderProject(){
+  const g1=document.getElementById("proj-grid-1");g1.innerHTML="";
+  g1.append(
+    field("Project name",P.name,"text",v=>P.name=v),
+    field("Client / Studio",P.client,"text",v=>P.client=v),
+    field("Bid number",P.bidNo,"text",v=>P.bidNo=v),
+    field("Bid type",P.bidType,"select",v=>P.bidType=v,{options:["Script bid","Temp bid","Final bid","Change order"]}),
+    field("Production type",P.prodType,"select",v=>P.prodType=v,{options:["Feature Film","TV Episodic","Streaming Series","Commercial","Trailer","Episodic Block"]}),
+    field("Director",P.director,"text",v=>P.director=v),
+    field("Client VFX Supervisor",P.clientSup,"text",v=>P.clientSup=v),
+    field("Client VFX Producer",P.clientProd,"text",v=>P.clientProd=v));
+  const g2=document.getElementById("proj-grid-2");g2.innerHTML="";
+  g2.append(
+    field("Bid due date",P.bidDue,"date",v=>P.bidDue=v),
+    field("Start / turnover",P.startDate,"date",v=>P.startDate=v),
+    field("Delivery date",P.deliveryDate,"date",v=>P.deliveryDate=v),
+    field("Work days available",P.workDays,"number",v=>P.workDays=+v,{num:true,hint:"Calendar work days for overhead"}));
+  const g3=document.getElementById("proj-grid-3");g3.innerHTML="";
+  g3.append(
+    field("Currency",P.currency,"select",v=>{P.currency=v;renderAll();},{options:["USD","CAD","GBP","EUR","AUD","NZD","MXN"]}),
+    field("Local tax (GST/VAT)",P.taxRate,"number",v=>P.taxRate=+v,{num:true,step:"0.01",hint:"As a fraction: 0.05 = 5%"}));
+  const jurWrap=document.createElement("div");jurWrap.className="field wide";
+  const jl=document.createElement("label");jl.textContent="Rebate jurisdiction";jurWrap.appendChild(jl);
+  const sel=document.createElement("select");sel.className="in";
+  JURISDICTIONS.forEach(j=>{const op=document.createElement("option");op.value=j.name;op.textContent=j.name;if(j.name===P.jurisdiction)op.selected=true;sel.appendChild(op);});
+  sel.addEventListener("change",()=>{const j=JURISDICTIONS.find(x=>x.name===sel.value);
+    P.jurisdiction=j.name;if(j.name!=="Custom / None")P.rebatePct=j.rebate;
+    document.getElementById("rebateInput").value=P.rebatePct;
+    document.getElementById("jurNote").textContent=j.note;autosave();updateReadout();});
+  jurWrap.appendChild(sel);
+  const jn=document.createElement("div");jn.className="jurnote";jn.id="jurNote";
+  jn.textContent=(JURISDICTIONS.find(x=>x.name===P.jurisdiction)||JURISDICTIONS[0]).note;jurWrap.appendChild(jn);
+  g3.append(jurWrap);
+  g3.append(
+    field("Rebate %",P.rebatePct,"number",v=>P.rebatePct=+v,{num:true,step:"0.01",id:"rebateInput",hint:"Editable. 0.35 = 35%"}),
+    field("% work in jurisdiction",P.workPct,"number",v=>P.workPct=+v,{num:true,step:"0.05",hint:"1.0 = all VFX done there"}),
+    field("On-schedule discount",P.discount,"number",v=>P.discount=+v,{num:true,hint:"Optional. Leave 0 if none."}));
+  const tog=document.createElement("div");tog.className="field wide";
+  const tlab=document.createElement("label");tlab.textContent="Rebate handling";tog.appendChild(tlab);
+  const sw=document.createElement("label");sw.className="switch";
+  sw.innerHTML=`<input type="checkbox" id="applyRebate"><span class="track"></span><span class="swlbl" id="applyRebateLbl"></span>`;
+  tog.appendChild(sw);
+  const tn=document.createElement("div");tn.className="jurnote";tn.id="applyRebateNote";tog.appendChild(tn);
+  g3.append(tog);
+  const cb=sw.querySelector("#applyRebate");cb.checked=(P.applyRebate!==false);
+  const syncTog=()=>{document.getElementById("applyRebateLbl").textContent=cb.checked?"ON — pass the rebate through (client total is reduced)":"OFF — bill full amount (rebate is informational)";
+    document.getElementById("applyRebateNote").innerHTML=cb.checked
+      ?"You claim a labour-based credit and pass it through as a lower price. Typical when <b>your studio</b> is the claimant (BC, Quebec, UK, Australia)."
+      :"You bill the full amount; the rebate is shown for information only. Typical for <b>US state credits</b>, where the <b>client / production</b> claims it.";};
+  syncTog();
+  cb.addEventListener("change",()=>{P.applyRebate=cb.checked;syncTog();autosave();updateReadout();if(document.getElementById("p-totals").classList.contains("on"))renderTotals();});
+  renderPayments();
+}
+
+/* ---- payment schedule ---- */
+function renderPayments(){
+  const host=document.getElementById("pay-body");const c=calc();let tot=0;
+  let h=`<div class='tscroll' style='max-width:600px'><table><thead><tr><th style='text-align:left;padding-left:12px'>Milestone</th><th>%</th><th>Amount</th><th></th></tr></thead><tbody>`;
+  state.payments.forEach((m,i)=>{tot+=+m.pct||0;
+    h+=`<tr><td class='tcell'><input type='text' value='${esc(m.label)}' data-pm='${i}' data-k='label' title='${esc(m.label)}' style='width:230px'></td>`+
+       `<td class='day'><input type='number' step='0.01' value='${m.pct}' data-pm='${i}' data-k='pct' style='width:74px'></td>`+
+       `<td class='money'>${money((+m.pct||0)*c.afterDiscount)}</td>`+
+       `<td class='act'><button class='del' data-delpm='${i}'>&times;</button></td></tr>`;});
+  const ok=Math.abs(tot-1)<0.001;
+  h+=`<tr><td style='padding:6px 12px;font-weight:700'>Total</td><td class='total' style='background:none;color:${ok?'var(--teal)':'var(--red)'}'>${pct(tot)}</td><td class='money'>${money(c.afterDiscount)}</td><td></td></tr>`;
+  h+=`</tbody></table></div><div style='margin-top:10px'><button class='addbtn' onclick='addPayment()'>+ Add milestone</button> <span class='count'>${ok?'✓ totals 100%':'⚠ percentages must total 100%'}</span></div>`;
+  host.innerHTML=h;
+  host.querySelectorAll("[data-pm]").forEach(inp=>{const i=+inp.dataset.pm,k=inp.dataset.k;
+    inp.addEventListener("input",()=>{state.payments[i][k]=k==='pct'?(+inp.value||0):inp.value;autosave();});
+    inp.addEventListener("change",()=>renderPayments());});
+  host.querySelectorAll("[data-delpm]").forEach(b=>b.addEventListener("click",()=>{state.payments.splice(+b.dataset.delpm,1);autosave();renderPayments();}));
+}
+function addPayment(){state.payments.push({label:"New milestone",pct:0});autosave();renderPayments();}
+
+/* ---- rates + roles ---- */
+function addDept(){state.departments.push({name:"New Dept",avg:750,mk:1,kind:"labor"});
+  state.assets.forEach(r=>r.days.push(0));state.shots.forEach(r=>r.days.push(0));
+  renderRates();buildBidTable("assets");buildBidTable("shots");updateReadout();autosave();}
+function removeDept(i){if(state.departments.length<=1){alert("Keep at least one department.");return;}
+  if(!confirm('Remove department "'+state.departments[i].name+'"? Its days are removed from every asset and shot.'))return;
+  state.departments.splice(i,1);state.assets.forEach(r=>r.days.splice(i,1));state.shots.forEach(r=>r.days.splice(i,1));
+  renderRates();buildBidTable("assets");buildBidTable("shots");updateReadout();autosave();}
+function addRole(){state.roles.push({role:"New role",rate:1000,mk:0,basis:"Day",qty:1});renderRates();updateReadout();autosave();}
+function removeRole(i){state.roles.splice(i,1);renderRates();updateReadout();autosave();}
+
+function renderRates(){
+  const t=document.getElementById("ratesTable");
+  let h="<thead><tr><th style='text-align:left;padding-left:12px'>Department</th><th>Type</th><th>Avg / day</th><th>Markup</th><th>Bid rate used</th><th></th></tr></thead><tbody>";
+  state.departments.forEach((d,i)=>{const isC=d.kind==='compute';
+    h+=`<tr><td class='tcell'><input type='text' value='${esc(d.name)}' data-dp='${i}' data-k='name' title='${esc(d.name)}' style='width:190px;${isC?"color:var(--gold);font-weight:600":""}'></td>`+
+       `<td style='text-align:center'><select class='kindsel' data-dp='${i}' data-k='kind'><option value='labor'${!isC?' selected':''}>Labor</option><option value='compute'${isC?' selected':''}>Compute</option></select></td>`+
+       `<td class='day'><input type='number' value='${d.avg}' data-dp='${i}' data-k='avg'></td>`+
+       `<td class='day'><input type='number' step='0.01' value='${d.mk}' data-dp='${i}' data-k='mk'></td>`+
+       `<td class='total' id='br-${i}'>${money(bidRate(i))}</td>`+
+       `<td class='act'><button class='del' title='Remove department' data-deldp='${i}'>&times;</button></td></tr>`;});
+  h+="</tbody>";t.innerHTML=h;
+  document.getElementById("deptCount").textContent=state.departments.length+" departments";
+  t.querySelectorAll("[data-dp]").forEach(inp=>{const i=+inp.dataset.dp,k=inp.dataset.k;const ev=(inp.tagName==='SELECT')?'change':'input';
+    inp.addEventListener(ev,()=>{state.departments[i][k]=(k==='avg'||k==='mk')?(+inp.value||0):inp.value;
+      if(k==='kind'){renderRates();buildBidTable('assets');buildBidTable('shots');autosave();updateReadout();return;}
+      const br=document.getElementById("br-"+i);if(br)br.textContent=money(bidRate(i));autosave();updateReadout();});
+    if(k==='name'){inp.addEventListener('change',()=>{buildBidTable('assets');buildBidTable('shots');});}});
+  t.querySelectorAll("button[data-deldp]").forEach(b=>b.addEventListener('click',()=>removeDept(+b.dataset.deldp)));
+
+  const c=calc();
+  const g=document.getElementById("rates-grid");g.innerHTML="";
+  g.append(
+    field("Overhead per day",state.overheadPerDay,"number",v=>state.overheadPerDay=+v,{num:true,hint:"× work days available. Set 0 for a solo/lean bid."}),
+    field("Setup cost per new team member",state.setupPerMember,"number",v=>state.setupPerMember=+v,{num:true,hint:"One-time flat cost per new hire (workstation, license, onboarding)."}),
+    field("New team members",state.teamMembers==null?"":state.teamMembers,"number",v=>state.teamMembers=(v===""?null:+v),{num:true,placeholder:num(c.newMembersAuto,1),hint:"Blank = auto (~"+num(c.newMembersAuto,1)+"). Solo artist: set 0 or 1."}),
+    field("Asset & shot markup",state.assetMarkup,"number",v=>state.assetMarkup=+v,{num:true,step:"0.01",hint:"0.05 = 5%"}));
+
+  const rt=document.getElementById("rolesTable");
+  let rh="<thead><tr><th style='text-align:left;padding-left:12px'>Role</th><th>Rate</th><th>Markup</th><th>Basis</th><th>Qty</th><th>Total</th><th></th></tr></thead><tbody>";
+  state.roles.forEach((o,i)=>{
+    rh+=`<tr><td class='tcell'><input type='text' value='${esc(o.role)}' data-ro='${i}' data-k='role' title='${esc(o.role)}' style='width:210px'></td>`+
+       `<td class='day'><input type='number' value='${o.rate}' data-ro='${i}' data-k='rate'></td>`+
+       `<td class='day'><input type='number' step='0.01' value='${o.mk}' data-ro='${i}' data-k='mk'></td>`+
+       `<td style='text-align:center'><select class='basissel' data-ro='${i}' data-k='basis'>${BASES.map(b=>`<option${b===o.basis?' selected':''}>${b}</option>`).join('')}</select></td>`+
+       `<td class='day'><input type='number' value='${o.qty}' data-ro='${i}' data-k='qty'></td>`+
+       `<td class='total' id='rt-${i}'>${money(roleTotal(o))}</td>`+
+       `<td class='act'><button class='del' data-delro='${i}'>&times;</button></td></tr>`;});
+  const rtot=state.roles.reduce((a,o)=>a+roleTotal(o),0);
+  rh+=`<tr><td style='padding:6px 12px;font-weight:700'>Total roles</td><td colspan='4'></td><td class='total' style='background:none'>${money(rtot)}</td><td></td></tr>`;
+  rh+="</tbody>";rt.innerHTML=rh;
+  document.getElementById("roleCount").textContent=state.roles.length+" roles";
+  rt.querySelectorAll("[data-ro]").forEach(inp=>{const i=+inp.dataset.ro,k=inp.dataset.k;const ev=(inp.tagName==='SELECT')?'change':'input';
+    inp.addEventListener(ev,()=>{state.roles[i][k]=(k==='rate'||k==='mk'||k==='qty')?(+inp.value||0):inp.value;
+      const c2=document.getElementById("rt-"+i);if(c2)c2.textContent=money(roleTotal(state.roles[i]));autosave();updateReadout();
+      if(ev==='change'||k==='rate'||k==='mk'||k==='qty'){const tr=rt.querySelector("tbody tr:last-child .total");if(tr)tr.textContent=money(state.roles.reduce((a,o)=>a+roleTotal(o),0));}});});
+  rt.querySelectorAll("button[data-delro]").forEach(b=>b.addEventListener('click',()=>removeRole(+b.dataset.delro)));
+}
+
+/* ---- assets / shots ---- */
+function viewOf(kind){return kind==='assets'?assetsView:shotsView;}
+function setView(kind,v){if(kind==='assets')assetsView=v;else shotsView=v;buildBidTable(kind);}
+function buildBidTable(kind){
+  const rows=state[kind];const table=document.getElementById(kind+"Table");const detailed=(viewOf(kind)==='detailed');
+  let h="<thead><tr><th class='stick c-idx'></th><th class='stick c-thumb'>Thumb</th><th class='stick c-name' style='text-align:left'>"+(kind==="assets"?"Asset":"Shot ID")+"</th><th>Type</th><th title='Manual complexity you assign — does NOT affect cost (cost comes from the day counts)'>Complexity</th>";
+  if(detailed)state.departments.forEach(d=>{h+=`<th class='dept${d.kind==='compute'?" compute":""}'>${esc(d.name)}</th>`;});
+  h+="<th>Labor</th><th>Compute</th><th>Total</th><th></th></tr></thead><tbody>";
+  rows.forEach((r,ri)=>h+=rowHTML(kind,r,ri,detailed));
+  h+="</tbody>";table.innerHTML=h;
+  table.querySelectorAll("tr[data-ri]").forEach(tr=>wireRow(kind,tr));
+  document.getElementById(kind+"Count").textContent=rows.length+(kind==="assets"?" assets":" shots");
+  document.querySelectorAll("#"+kind+"Seg button").forEach(b=>b.classList.toggle("on",b.dataset.v===viewOf(kind)));
+}
+function rowHTML(kind,r,ri,detailed){
+  let h=`<tr data-ri='${ri}'><td class='stick c-idx'>${ri+1}</td>`;
+  h+=`<td class='stick c-thumb'><div class='thumbbox' data-thumb title='Click to add / change image (upload or paste a link)'>${r.thumb?`<img src='${esc(r.thumb)}' onerror="this.style.display='none'">`:`<span class='ph'>+img</span>`}</div></td>`;
+  h+=`<td class='stick c-name'><input type='text' value='${esc(r.name)}' data-f='name' title='${esc(r.name)}'></td>`;
+  h+=`<td class='tcell' style='min-width:120px'><input type='text' value='${esc(r.type)}' data-f='type' title='${esc(r.type)}' style='width:120px'></td>`;
+  h+=`<td class='tcell' style='min-width:96px'><input type='text' value='${esc(r.diff)}' data-f='diff' title='Complexity rating you assign — does not affect cost' style='width:96px;text-align:center'></td>`;
+  if(detailed)state.departments.forEach((d,di)=>{const v=r.days[di];h+=`<td class='day'><input type='number' data-d='${di}' value='${v?v:""}' style='width:52px'></td>`;});
+  h+=`<td class='money' data-labor></td><td class='money' data-comp></td><td class='total' data-tot></td>`;
+  h+=`<td class='act'><button class='del' title='Delete' data-del>&times;</button></td></tr>`;
+  return h;
+}
+function wireRow(kind,tr){
+  const ri=+tr.dataset.ri;const r=state[kind][ri];
+  tr.querySelectorAll("input[data-f]").forEach(inp=>inp.addEventListener("input",()=>{r[inp.dataset.f]=inp.value;inp.title=inp.value;autosave();}));
+  tr.querySelectorAll("input[data-d]").forEach(inp=>inp.addEventListener("input",()=>{r.days[+inp.dataset.d]=+inp.value||0;refreshRow(tr,r);updateReadout();autosave();}));
+  const tb=tr.querySelector("[data-thumb]");if(tb)tb.addEventListener("click",()=>editThumb(kind,ri));
+  tr.querySelector("[data-del]").addEventListener("click",()=>{state[kind].splice(ri,1);buildBidTable(kind);updateReadout();autosave();});
+  refreshRow(tr,r);
+}
+function refreshRow(tr,r){
+  tr.querySelector("[data-labor]").textContent=money(rowLabor(r));
+  tr.querySelector("[data-comp]").textContent=money(rowCompute(r));
+  tr.querySelector("[data-tot]").textContent=money(rowTotal(r));
+}
+function addRow(kind){state[kind].push({name:"",type:"",diff:"",notes:"",thumb:"",days:blankDaysN(state.departments.length)});buildBidTable(kind);
+  const inputs=document.getElementById(kind+"Table").querySelectorAll("tr[data-ri] .c-name input");if(inputs.length)inputs[inputs.length-1].focus();updateReadout();autosave();}
+
+/* ---- thumbnails ---- */
+function editThumb(kind,ri){
+  const cur=state[kind][ri].thumb||"";
+  const url=prompt("Paste an image URL (a direct https image link).\n• Leave blank and press OK to UPLOAD a file from your computer.\n• Type 'remove' to clear.\nNote: a Google Drive share link is not a direct image — use a direct/embed image link, or upload the file.",cur);
+  if(url===null)return;
+  const v=url.trim();
+  if(v.toLowerCase()==="remove"){state[kind][ri].thumb="";buildBidTable(kind);autosave();return;}
+  if(v!==""){state[kind][ri].thumb=v;buildBidTable(kind);autosave();return;}
+  thumbTarget={kind,ri};document.getElementById("thumbInput").click();
+}
+function handleThumb(ev){const f=ev.target.files[0];if(!f||!thumbTarget){ev.target.value="";return;}
+  const rd=new FileReader();rd.onload=()=>{const{kind,ri}=thumbTarget;state[kind][ri].thumb=rd.result;buildBidTable(kind);autosave();thumbTarget=null;};
+  rd.readAsDataURL(f);ev.target.value="";}
+
+/* ---- totals ---- */
+function renderTotals(){
+  const c=calc();
+  const cards=[
+    {k:"Assets - total",v:money(c.assetsTotal),d:state.assets.length+" assets"},
+    {k:"Shots - total",v:money(c.shotsTotal),d:state.shots.length+" shots"},
+    {k:"Overhead",v:money(c.overhead),d:num(state.project.workDays,0)+" days x "+money(state.overheadPerDay)},
+    {k:"Setup",v:money(c.setup),d:num(c.newMembers,1)+" team members"},
+    {k:"Roles & supervision",v:money(c.roles),d:state.roles.length+" roles"},
+    {k:"Grand total",v:money(c.grand),d:num(c.totalDays,0)+" bid-days",cls:"hero"},
+    {k:c.rebateApplied?"Estimated rebate (applied)":"Estimated rebate (info only)",v:(c.rebateApplied?"-":"")+money(c.rebate),
+      d:c.rebateApplied?(pct(state.project.rebatePct)+" x "+pct(state.project.workPct)+" · passed through"):"client-claimed · not deducted",cls:c.rebateApplied?"teal":""},
+    {k:"On-schedule discount",v:"-"+money(state.project.discount),d:"",cls:"red"},
+    {k:c.rebateApplied?"Total to client (after rebate & discount)":"Total to client (gross - discount)",v:money(c.afterDiscount),d:c.rebateApplied?"estimated net":"you bill this; client claims rebate",cls:"hero"}];
+  const wrap=document.getElementById("totalCards");wrap.innerHTML="";
+  cards.forEach(cd=>{const el=document.createElement("div");el.className="card "+(cd.cls||"");
+    el.innerHTML=`<div class="k">${cd.k}</div><div class="v">${cd.v}</div>`+(cd.d?`<div class="d">${cd.d}</div>`:"");wrap.appendChild(el);});
+  const t=document.getElementById("deptTable");
+  let h="<thead><tr><th style='text-align:left;padding-left:12px'>Department</th><th>Asset days</th><th>Shot days</th><th>Total days</th><th>Bid rate</th><th>Cost</th></tr></thead><tbody>";
+  state.departments.forEach((d,i)=>{const ad=state.assets.reduce((a,r)=>a+(+r.days[i]||0),0);const sd=state.shots.reduce((a,r)=>a+(+r.days[i]||0),0);const td=ad+sd;const rate=bidRate(i);
+    h+=`<tr><td style='padding:6px 12px;${d.kind==='compute'?"color:var(--gold)":""}'>${esc(d.name)}</td><td class='money'>${num(ad)}</td><td class='money'>${num(sd)}</td><td class='money' style='color:var(--ink)'>${num(td)}</td><td class='money'>${money(rate)}</td><td class='total'>${money(td*rate)}</td></tr>`;});
+  h+="</tbody>";t.innerHTML=h;
+}
+
+/* ---- charts ---- */
+function svgBars(cats,series,fmt,opts){opts=opts||{};
+  const W=940,H=380,ml=78,mr=16,mt=28,mb=98,iw=W-ml-mr,ih=H-mt-mb;
+  let max=0;series.forEach(s=>s.values.forEach(v=>{if(v>max)max=v;}));if(max<=0)max=1;
+  const ticks=4;let g="";
+  for(let t=0;t<=ticks;t++){const y=mt+ih-ih*t/ticks,val=max*t/ticks;g+=`<line x1="${ml}" y1="${y}" x2="${W-mr}" y2="${y}" stroke="#2c363d"/><text x="${ml-8}" y="${y+3}" text-anchor="end" fill="#63727c" font-size="10">${fmt(val)}</text>`;}
+  const bw=iw/cats.length,n=series.length,pad=bw*0.16,innerW=bw-pad*2,barW=innerW/n;
+  cats.forEach((c,ci)=>{const x0=ml+bw*ci+pad;const isHi=(opts.highlight===ci);
+    series.forEach((s,si)=>{const v=s.values[ci]||0,hh=ih*v/max,x=x0+barW*si,y=mt+ih-hh;
+      g+=`<rect x="${x}" y="${y}" width="${Math.max(1,barW-1)}" height="${Math.max(0,hh)}" fill="${s.color}" rx="1"${isHi?' stroke="#fff" stroke-width="1.2"':''}><title>${esc(c)} · ${s.name}: ${fmt(v)}</title></rect>`;
+      if(isHi&&n===1){g+=`<text x="${x+barW/2}" y="${y-5}" text-anchor="middle" fill="#e8eef2" font-size="10" font-weight="700">${fmt(v)}</text>`;}});
+    const lx=ml+bw*ci+bw/2;g+=`<text x="${lx}" y="${mt+ih+12}" transform="rotate(-42 ${lx} ${mt+ih+13})" text-anchor="end" fill="${isHi?'#e0a63c':'#8b9aa5'}" font-size="9.5"${isHi?' font-weight="700"':''}>${esc(c)}</text>`;});
+  let lx=ml;series.forEach(s=>{g+=`<rect x="${lx}" y="6" width="10" height="10" rx="2" fill="${s.color}"/><text x="${lx+15}" y="15" fill="#8b9aa5" font-size="11">${s.name}</text>`;lx+=s.name.length*7+42;});
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">${g}</svg>`;
+}
+function svgLines(cats,series,fmt){
+  const W=940,H=360,ml=90,mr=16,mt=28,mb=54,iw=W-ml-mr,ih=H-mt-mb;
+  let max=0,min=0;series.forEach(s=>s.values.forEach(v=>{if(v>max)max=v;if(v<min)min=v;}));if(max===min)max+=1;
+  const yOf=v=>mt+ih-(v-min)/(max-min)*ih,xOf=i=>ml+(cats.length<=1?iw/2:iw*i/(cats.length-1));
+  let g="";const ticks=4;
+  for(let t=0;t<=ticks;t++){const val=min+(max-min)*t/ticks,y=yOf(val);g+=`<line x1="${ml}" y1="${y}" x2="${W-mr}" y2="${y}" stroke="#2c363d"/><text x="${ml-8}" y="${y+3}" text-anchor="end" fill="#63727c" font-size="10">${fmt(val)}</text>`;}
+  if(min<0){const yz=yOf(0);g+=`<line x1="${ml}" y1="${yz}" x2="${W-mr}" y2="${yz}" stroke="#5a6b75" stroke-dasharray="3 3"/>`;}
+  cats.forEach((c,i)=>{const x=xOf(i);g+=`<text x="${x}" y="${mt+ih+16}" text-anchor="middle" fill="#8b9aa5" font-size="9.5">${esc(c)}</text>`;});
+  series.forEach(s=>{const pts=s.values.map((v,i)=>`${xOf(i)},${yOf(v)}`).join(" ");g+=`<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2.5"/>`;
+    s.values.forEach((v,i)=>{g+=`<circle cx="${xOf(i)}" cy="${yOf(v)}" r="3" fill="${s.color}"><title>${esc(cats[i])} · ${s.name}: ${fmt(v)}</title></circle>`;});});
+  let lx=ml;series.forEach(s=>{g+=`<rect x="${lx}" y="6" width="10" height="10" rx="2" fill="${s.color}"/><text x="${lx+15}" y="15" fill="#8b9aa5" font-size="11">${s.name}</text>`;lx+=s.name.length*7+46;});
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">${g}</svg>`;
+}
+function topBottom(cats,values,fmt){let hi=-Infinity,lo=Infinity,hiI=-1,loI=-1;
+  values.forEach((v,i)=>{if(v>hi){hi=v;hiI=i;}if(v>0&&v<lo){lo=v;loI=i;}});
+  if(hiI<0||hi<=0)return {html:"No data yet.",hi:-1};
+  let s=`Highest: <b>${esc(cats[hiI])}</b> — ${fmt(hi)}`;
+  if(loI>=0&&loI!==hiI)s+=` &nbsp;·&nbsp; Lowest: <b>${esc(cats[loI])}</b> — ${fmt(lo)}`;
+  return {html:s,hi:hiI};}
+function renderCharts(){
+  const cats=state.departments.map(d=>d.name);
+  const ad=state.departments.map((d,i)=>state.assets.reduce((a,r)=>a+(+r.days[i]||0),0));
+  const sd=state.departments.map((d,i)=>state.shots.reduce((a,r)=>a+(+r.days[i]||0),0));
+  const totDays=ad.map((v,i)=>v+sd[i]);
+  const tbD=topBottom(cats,totDays,v=>num(v,0)+" d");
+  document.getElementById("chartDays").innerHTML=svgBars(cats,[{name:"Asset days",color:"#49cbb8",values:ad},{name:"Shot days",color:"#e0a63c",values:sd}],v=>num(v,0),{highlight:tbD.hi});
+  document.getElementById("capDays").innerHTML=tbD.html;
+  const cost=state.departments.map((d,i)=>totDays[i]*bidRate(i));
+  const tbC=topBottom(cats,cost,v=>money(v));
+  document.getElementById("chartCost").innerHTML=svgBars(cats,[{name:"Cost",color:"#e0a63c",values:cost}],v=>money(v),{highlight:tbC.hi});
+  document.getElementById("capCost").innerHTML=tbC.html;
+  const c=calc(),grand=c.grand,toClient=c.afterDiscount;
+  const pay=state.payments.length?state.payments:[{label:"Total",pct:1}];
+  const labels=pay.map(m=>m.label);let cum=0;const income=pay.map(m=>{cum+=(+m.pct||0);return cum*toClient;});
+  const nP=pay.length;const costc=pay.map((m,i)=>grand*(nP<=1?1:(i+1)/nP));
+  const bal=income.map((v,i)=>v-costc[i]);
+  document.getElementById("chartCash").innerHTML=svgLines(labels,[
+    {name:"Cumulative income",color:"#49cbb8",values:income},
+    {name:"Cumulative cost",color:"#e5726b",values:costc},
+    {name:"Balance",color:"#e0a63c",values:bal}],v=>money(v));
+}
+
+/* ---- compare ---- */
+function loadBidB(){document.getElementById("fileB").click();}
+function handleFileB(ev){const f=ev.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{try{stateB=migrate(JSON.parse(rd.result));renderCompare();}catch(e){alert("Could not read bid B.");}};rd.readAsText(f);ev.target.value="";}
+function clearB(){stateB=null;renderCompare();}
+function renderCompare(){
+  const wrap=document.getElementById("compareBody");
+  if(!stateB){wrap.innerHTML=`<div style="margin-bottom:12px"><button class="tbtn gold" onclick="loadBidB()">Load bid B (.json)</button></div><div class="note">Load a second saved bid to compare it against the one you're working on (A). Both totals are computed live and independently.</div>`;return;}
+  const A=computeBid(state),B=computeBid(stateB);
+  const rows=[["Assets total",A.assetsTotal,B.assetsTotal,"m"],["Shots total",A.shotsTotal,B.shotsTotal,"m"],
+    ["Roles & supervision",A.roles,B.roles,"m"],["Overhead + setup",A.overhead+A.setup,B.overhead+B.setup,"m"],
+    ["Grand total",A.grand,B.grand,"m"],["Estimated rebate",A.rebate,B.rebate,"m"],["To client",A.afterDiscount,B.afterDiscount,"m"],
+    ["Total bid-days",A.totalDays,B.totalDays,"d"],["# assets",state.assets.length,stateB.assets.length,"i"],["# shots",state.shots.length,stateB.shots.length,"i"]];
+  let h=`<div style="margin-bottom:12px"><button class="tbtn" onclick="loadBidB()">Load / replace bid B</button> <button class="tbtn" onclick="clearB()">Clear B</button></div>`;
+  h+=`<div class="tscroll" style="max-width:860px"><table><thead><tr><th style='text-align:left;padding-left:12px'>Metric</th><th class='n' style='text-align:right;padding-right:12px'>A · ${esc(state.project.name||"This bid")} (${state.project.currency})</th><th class='n' style='text-align:right;padding-right:12px'>B · ${esc(stateB.project.name||"Bid B")} (${stateB.project.currency})</th><th class='n' style='text-align:right;padding-right:12px'>Difference (B - A)</th></tr></thead><tbody>`;
+  rows.forEach(r=>{const[k,a,b,t]=r;const fa=t==="m"?moneyOf(state,a):num(a,0),fb=t==="m"?moneyOf(stateB,b):num(b,0);
+    const dd=b-a,col=dd>0?"var(--red)":dd<0?"var(--teal)":"var(--dim)",df=t==="m"?moneyOf(stateB,Math.abs(dd)):num(Math.abs(dd),0),sign=dd>0?"+":dd<0?"-":"";
+    h+=`<tr><td style='padding:8px 12px'>${k}</td><td class='money' style='color:var(--ink)'>${fa}</td><td class='money' style='color:var(--ink)'>${fb}</td><td class='money' style='color:${col}'>${sign}${df}</td></tr>`;});
+  h+=`</tbody></table></div>`;
+  const chart=svgBars(["Grand total","To client"],[{name:"A",color:"#49cbb8",values:[A.grand,A.afterDiscount]},{name:"B",color:"#e0a63c",values:[B.grand,B.afterDiscount]}],v=>money(v));
+  h+=`<div class="chartwrap" style="margin-top:16px"><h3>Grand total &amp; to client</h3>${chart}</div>`;
+  wrap.innerHTML=h;
+}
+
+/* ---- readout ---- */
+function updateReadout(){
+  const c=calc(),cur=state.project.currency;
+  const rebSeg=c.rebateApplied?`<div class="ro rebate"><div class="k">Est. rebate</div><div class="v">-${money(c.rebate)}</div></div>`
+    :`<div class="ro"><div class="k">Est. rebate (info)</div><div class="v" style="color:var(--dim)">${money(c.rebate)}</div></div>`;
+  document.getElementById("readout").innerHTML=
+    `<div class="ro"><div class="k">Assets</div><div class="v">${money(c.assetsTotal)}</div></div>`+
+    `<div class="ro"><div class="k">Shots</div><div class="v">${money(c.shotsTotal)}</div></div>`+
+    `<div class="ro"><div class="k">Grand total</div><div class="v">${money(c.grand)}<span class="cur">${cur}</span></div></div>`+
+    rebSeg+
+    `<div class="ro final"><div class="k">To client</div><div class="v${c.afterDiscount<0?' neg':''}">${money(c.afterDiscount)}<span class="cur">${cur}</span></div></div>`;
+  if(document.getElementById("p-totals").classList.contains("on"))renderTotals();
+  if(document.getElementById("p-charts").classList.contains("on"))renderCharts();
+  if(document.getElementById("p-project").classList.contains("on")&&document.getElementById("pay-body").innerHTML)renderPayments();
+}
+
+document.querySelectorAll(".navitem").forEach(n=>n.addEventListener("click",()=>{
+  document.querySelectorAll(".navitem").forEach(x=>x.classList.remove("on"));
+  document.querySelectorAll(".panel").forEach(x=>x.classList.remove("on"));
+  n.classList.add("on");const tab=n.dataset.tab;document.getElementById("p-"+tab).classList.add("on");
+  if(tab==="assets")buildBidTable("assets");if(tab==="shots")buildBidTable("shots");
+  if(tab==="rates")renderRates();if(tab==="totals")renderTotals();if(tab==="project")renderProject();
+  if(tab==="charts")renderCharts();if(tab==="compare")renderCompare();}));
+document.querySelectorAll("#assetsSeg button").forEach(b=>b.addEventListener("click",()=>setView("assets",b.dataset.v)));
+document.querySelectorAll("#shotsSeg button").forEach(b=>b.addEventListener("click",()=>setView("shots",b.dataset.v)));
+
+const sn=document.getElementById("studioName");sn.value=state.studio;
+sn.addEventListener("input",()=>{state.studio=sn.value;autosave();});
+
+/* ---- save / load / export ---- */
+function saveBid(){const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const a=document.createElement("a");
+  const nm=(state.project.name||"bid")+"_bid_"+(state.project.bidNo||"1");a.href=URL.createObjectURL(blob);a.download=nm.replace(/[^a-z0-9_\-]/gi,"_")+".json";a.click();URL.revokeObjectURL(a.href);}
+function loadBid(){document.getElementById("fileInput").click();}
+function handleFile(ev){const f=ev.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{try{state=migrate(JSON.parse(rd.result));autosave();renderAll();}catch(e){alert("Could not read the file. Is it a .json saved by this app?");}};rd.readAsText(f);ev.target.value="";}
+function newBid(){if(!confirm("Start a new bid? This clears the screen (save first if you need to)."))return;
+  state=defaultState();state.assets=[];state.shots=[];autosave();renderAll();}
+function exportCSV(){
+  const dn=state.departments.map(d=>d.name);const head=["Kind","#","Name","Type","Complexity",...dn,"Labor","Compute","Total"];const lines=[head.join(",")];
+  const push=(kind,arr)=>arr.forEach((r,i)=>lines.push([kind,i+1,q(r.name),q(r.type),q(r.diff),...r.days.map(x=>x||0),Math.round(rowLabor(r)),Math.round(rowCompute(r)),Math.round(rowTotal(r))].join(",")));
+  push("Asset",state.assets);push("Shot",state.shots);const c=calc();lines.push("");const blanks=dn.map(()=>"");
+  lines.push(["Grand Total","","","","",...blanks,"","",Math.round(c.grand)].join(","));
+  lines.push(["Est. Rebate","","","","",...blanks,"","",Math.round(c.rebate)].join(","));
+  lines.push(["To Client","","","","",...blanks,"","",Math.round(c.afterDiscount)].join(","));
+  const blob=new Blob([lines.join("\n")],{type:"text/csv"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(state.project.name||"bid")+"_export.csv";a.click();URL.revokeObjectURL(a.href);}
+function q(s){s=String(s==null?"":s);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+
+/* ---- PDF ---- */
+function exportPDF(){buildPrintDoc();window.print();}
+window.addEventListener("beforeprint",buildPrintDoc);
+function buildPrintDoc(){
+  const c=calc(),p=state.project,cur=p.currency;
+  const dt=d=>{if(!d)return "-";const x=new Date(d+"T00:00:00");return isNaN(x)?d:x.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});};
+  const meta=[["Client / Studio",p.client],["Bid number",p.bidNo],["Bid type",p.bidType],["Production type",p.prodType],
+    ["Director",p.director],["Client VFX Supervisor",p.clientSup],["Client VFX Producer",p.clientProd],["Currency",cur],
+    ["Start / turnover",dt(p.startDate)],["Delivery date",dt(p.deliveryDate)],["Bid due date",dt(p.bidDue)],["Rebate jurisdiction",p.jurisdiction]];
+  let h="";
+  h+=`<div class="lh"><div><div class="studio">${esc(state.studio)}</div><div class="loc">VFX bid prepared by ${esc(state.studio)}</div></div><div class="doctype">VFX BID<small>${esc(p.name)} &middot; Bid ${esc(p.bidNo)}</small></div></div>`;
+  h+=`<div class="cover">We appreciate the opportunity to bid on <b>${esc(p.name)}</b>. Below is our finalized ${esc(p.bidType).toLowerCase()} for ${esc(p.client)}. All costs are integrated into the assets, shots and roles with no additional fees outside of these totals.</div>`;
+  h+=`<h3>Project</h3><div class="meta">`;meta.forEach(m=>h+=`<div><span class="lab">${esc(m[0])}</span><span class="val">${esc(m[1]||"-")}</span></div>`);h+=`</div>`;
+  h+=`<h3>Bid summary</h3><table><tbody>`;
+  const row=(k,v)=>`<tr><td>${k}</td><td class="n">${money(v)}</td></tr>`,neg=(k,v)=>`<tr><td>${k}</td><td class="n">-${money(v)}</td></tr>`;
+  h+=row("Assets ("+state.assets.length+")",c.assetsTotal)+row("Shots ("+state.shots.length+")",c.shotsTotal);
+  h+=row("Roles & supervision",c.roles)+row("Overhead",c.overhead)+row("Setup",c.setup);
+  h+=`<tr class="grand"><td>Grand total ${cur}</td><td class="n">${money(c.grand)}</td></tr>`;
+  if(c.rebateApplied){h+=neg("Estimated tax rebate ("+esc(p.jurisdiction)+", "+pct(p.rebatePct)+")",c.rebate)+neg("On-schedule discount",p.discount);
+    h+=`<tr class="tot"><td>Estimated total to client ${cur}</td><td class="n">${money(c.afterDiscount)}</td></tr>`;
+  }else{h+=neg("On-schedule discount",p.discount);
+    h+=`<tr class="tot"><td>Total to client ${cur} (billed in full)</td><td class="n">${money(c.afterDiscount)}</td></tr>`;
+    h+=`<tr><td>Estimated tax rebate (${esc(p.jurisdiction)})</td><td class="n">${money(c.rebate)}</td></tr>`;
+    h+=`<tr><td colspan="2" style="color:#888;font-size:9.5px">Rebate shown for information only — claimed by the client / production, not deducted from this bid.</td></tr>`;}
+  h+=`</tbody></table>`;
+  const bidTable=(title,arr)=>{if(!arr.length)return "";
+    let s=`<h3>${title} (${arr.length})</h3><table><thead><tr><th style="width:26px">#</th><th>Name</th><th>Type</th><th style="width:60px">Complexity</th><th class="n">Labor</th><th class="n">Compute</th><th class="n">Total</th></tr></thead><tbody>`;
+    arr.forEach((r,i)=>{s+=`<tr><td>${i+1}</td><td>${esc(r.name)}</td><td>${esc(r.type)}</td><td>${esc(r.diff)}</td><td class="n">${money(rowLabor(r))}</td><td class="n">${money(rowCompute(r))}</td><td class="n">${money(rowTotal(r))}</td></tr>`;});
+    const tl=arr.reduce((a,r)=>a+rowLabor(r),0),tc=arr.reduce((a,r)=>a+rowCompute(r),0),tt=arr.reduce((a,r)=>a+rowTotal(r),0);
+    s+=`<tr class="tot"><td colspan="4">Total</td><td class="n">${money(tl)}</td><td class="n">${money(tc)}</td><td class="n">${money(tt)}</td></tr></tbody></table>`;return s;};
+  h+=bidTable("Assets",state.assets)+bidTable("Shots",state.shots);
+  if(state.roles.length){h+=`<h3>Roles, supervision &amp; production</h3><table><thead><tr><th>Role</th><th class="n">Rate</th><th>Basis</th><th class="n">Qty</th><th class="n">Total</th></tr></thead><tbody>`;
+    state.roles.forEach(o=>{h+=`<tr><td>${esc(o.role)}</td><td class="n">${money(o.rate)}</td><td>${esc(o.basis)}</td><td class="n">${num(o.qty,0)}</td><td class="n">${money(roleTotal(o))}</td></tr>`;});
+    h+=`<tr class="tot"><td colspan="4">Total roles</td><td class="n">${money(c.roles)}</td></tr></tbody></table>`;}
+  h+=`<h3>Breakdown by department</h3><table><thead><tr><th>Department</th><th class="n">Total days</th><th class="n">Bid rate</th><th class="n">Cost</th></tr></thead><tbody>`;
+  state.departments.forEach((d,i)=>{const td=state.assets.reduce((a,r)=>a+(+r.days[i]||0),0)+state.shots.reduce((a,r)=>a+(+r.days[i]||0),0);if(td===0)return;
+    h+=`<tr><td>${esc(d.name)}</td><td class="n">${num(td)}</td><td class="n">${money(bidRate(i))}</td><td class="n">${money(td*bidRate(i))}</td></tr>`;});
+  h+=`</tbody></table>`;
+  h+=`<h3>Payment schedule</h3><table><thead><tr><th>Milestone</th><th class="n">%</th><th class="n">Amount</th></tr></thead><tbody>`;
+  let tot=0;state.payments.forEach(m=>{tot+=+m.pct||0;h+=`<tr><td>${esc(m.label)}</td><td class="n">${pct(m.pct)}</td><td class="n">${money((+m.pct||0)*c.afterDiscount)}</td></tr>`;});
+  h+=`<tr class="tot"><td>Total ${cur}</td><td class="n">${pct(tot)}</td><td class="n">${money(c.afterDiscount)}</td></tr></tbody></table>`;
+  h+=`<div class="foot">Generated ${new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"})} &middot; ${esc(state.studio)} &middot; This is a bid estimate, not a contract. Tax rebate is an estimate; confirm with the jurisdiction and your production accountant.</div>`;
+  document.getElementById("printDoc").innerHTML=h;
+}
+
+function renderAll(){document.getElementById("studioName").value=state.studio;
+  renderProject();renderRates();buildBidTable("assets");buildBidTable("shots");renderTotals();updateReadout();}
+renderAll();
+</script>
+</body>
+</html>
