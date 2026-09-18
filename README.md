@@ -60,7 +60,7 @@ If it helps your studio, a mention is always appreciated.
 
 ## Credits
 
-Created by **Victor Rivas** — Founder, CEO & VFX Supervisor, [Lacus Post](https://www.v-rivas.com).
+Created by **Victor Rivas** — Founder, CEO & VFX Supervisor, [Lacus Post](https://www.lacuspost.com).
 HPA Award for Best Visual Effects (*The One and Only Ivan*).
 
 Feedback and pull requests welcome.
