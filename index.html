@@ -158,7 +158,7 @@ td.act{width:40px;text-align:center;background:var(--panel)}
 .file{display:none}
 
 #printDoc{display:none}
-@media print{.topbar,.shell,.readout{display:none!important}html,body{height:auto;overflow:visible;background:#fff}#printDoc{display:block!important}@page{margin:13mm}}
+@media print{.topbar,.wsbar,.shell,.readout{display:none!important}html,body{height:auto;overflow:visible;background:#fff}#printDoc{display:block!important;padding:0 15mm}@page{margin:0}#printDoc table.pw{width:100%;table-layout:fixed;border-collapse:collapse;margin:0;font-size:inherit}#printDoc .pw>thead>tr>td,#printDoc .pw>tbody>tr>td,#printDoc .pw>tfoot>tr>td{padding:0;border:0;background:transparent}#printDoc .pw>thead>tr,#printDoc .pw>tbody>tr,#printDoc .pw>tfoot>tr{break-inside:auto;page-break-inside:auto}#printDoc .pw-sp{height:14mm}#printDoc h3{break-after:avoid;page-break-after:avoid}#printDoc .lh{break-after:avoid;page-break-after:avoid}#printDoc thead{display:table-header-group}#printDoc table:not(.pw) tr{break-inside:avoid;page-break-inside:avoid}}
 #printDoc{color:#1c1c1c;background:#fff;font-family:var(--sans);font-size:11px;line-height:1.5}
 #printDoc .lh{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #b7791f;padding-bottom:12px;margin-bottom:14px}
 #printDoc .studio{font-size:22px;font-weight:800;color:#b7791f;letter-spacing:.02em}
@@ -179,6 +179,20 @@ td.act{width:40px;text-align:center;background:var(--panel)}
 #printDoc .grand{background:#b7791f;color:#fff;font-weight:800}
 #printDoc .grand td{border-color:#a97e2f;color:#fff;background:#b7791f}
 #printDoc .foot{margin-top:16px;color:#888;font-size:9px;border-top:1px solid #e6e0d2;padding-top:8px}
+.wsbar{display:flex;align-items:center;gap:10px;padding:8px 18px;background:#12171a;border-bottom:1px solid var(--line);flex:0 0 auto}
+.wsbar .wslabel{color:var(--dim);font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:700}
+.wsbar select{background:#0f1417;border:1px solid var(--line2);color:var(--ink);padding:7px 10px;border-radius:6px;font-size:13px;min-width:320px;font-weight:600}
+.wsbar .wshint{color:var(--dim);font-size:11px}
+td select.diffsel{background:#0f1417;border:1px solid var(--line2);color:var(--ink);border-radius:5px;padding:5px 6px;font-size:11px;margin:4px;width:118px}
+td input.diffcustom{width:104px;text-align:center}
+#p-help{max-width:900px}
+#p-help h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:24px 0 8px}
+#p-help h3{font-size:14px;margin:16px 0 4px;color:var(--ink)}
+#p-help p{color:var(--mut);font-size:13px;line-height:1.65;margin:0 0 10px;max-width:80ch}
+#p-help ul{color:var(--mut);font-size:13px;line-height:1.7;margin:0 0 12px;padding-left:20px;max-width:80ch}
+#p-help b{color:var(--ink)}
+#p-help .kbd{background:#0f1417;border:1px solid var(--line2);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:12px;color:var(--gold)}
+
 </style>
 </head>
 <body>
@@ -188,13 +202,25 @@ td.act{width:40px;text-align:center;background:var(--panel)}
     <input id="studioName" value="YOUR STUDIO NAME" spellcheck="false" title="Your studio (editable)"></div>
   <span class="sub">BidReel</span>
   <div class="spacer"></div>
-  <button class="tbtn" onclick="newBid()">New</button>
   <button class="tbtn" onclick="loadBid()">Load</button>
   <button class="tbtn" onclick="saveBid()">Save bid</button>
+  <button class="tbtn" onclick="importCSV()">Import CSV</button>
   <button class="tbtn" onclick="exportCSV()">Export CSV</button>
+  <button class="tbtn" onclick="exportXLSX()">Export Excel</button>
   <button class="tbtn gold" onclick="exportPDF()">Export PDF</button>
   <input type="file" id="fileInput" class="file" accept=".json" onchange="handleFile(event)">
   <input type="file" id="thumbInput" class="file" accept="image/*" onchange="handleThumb(event)">
+  <input type="file" id="csvInput" class="file" accept=".csv,text/csv" onchange="handleCSV(event)">
+</div>
+
+<div class="wsbar">
+  <span class="wslabel">Project</span>
+  <select id="bidSelect" onchange="switchBid(this.value)"></select>
+  <button class="tbtn" onclick="addBid()">+ New</button>
+  <button class="tbtn" onclick="duplicateBid()">Duplicate</button>
+  <button class="tbtn" onclick="deleteBid()">Delete</button>
+  <span class="spacer"></span>
+  <span class="wshint" id="bidCount"></span>
 </div>
 
 <div class="shell">
@@ -207,6 +233,7 @@ td.act{width:40px;text-align:center;background:var(--panel)}
     <div class="navitem" data-tab="totals"><span class="n">05</span> Totals</div>
     <div class="navitem" data-tab="charts"><span class="n">06</span> Charts</div>
     <div class="navitem" data-tab="compare"><span class="n">07</span> Compare</div>
+    <div class="navitem" data-tab="help"><span class="n">08</span> Help</div>
     <div class="foot">Offline &middot; single file.<br>Your data stays on your machine.<br>Save a <b>.json</b> to use it on another computer.<br><br>By <a href="https://www.lacuspost.com" target="_blank" rel="noopener" style="color:var(--gold-dim);text-decoration:none">Victor Rivas</a> &middot; Lacus Post</div>
   </nav>
 
@@ -225,6 +252,9 @@ td.act{width:40px;text-align:center;background:var(--panel)}
       <div id="pay-body"></div>
       <div class="note" style="margin-top:20px"><b>Estimated rebate</b> = labor base &times; % work in jurisdiction &times; rebate %.
       Rates are current headline VFX incentives (2025&ndash;2026), estimates only &mdash; confirm with the jurisdiction and your production accountant.</div>
+      <div class="sec"><h2>Studio branding (for your PDF)</h2><span class="rule"></span></div>
+      <p class="lead" style="margin:0 0 10px">Optional. Your studio / company name (same as the top-left) plus two lines shown on the exported PDF letterhead.</p>
+      <div class="grid" id="proj-grid-studio"></div>
     </section>
 
     <section class="panel" id="p-rates">
@@ -274,10 +304,59 @@ td.act{width:40px;text-align:center;background:var(--panel)}
 
     <section class="panel" id="p-compare">
       <h1 class="h1">Compare bids</h1>
-      <p class="lead">Compare the bid you're working on (A) against a second saved bid (B). Load a <b>.json</b> you saved earlier.</p>
+      <p class="lead">Pick any two projects from your workspace to compare side by side. Use <b>Load</b> (top bar) to bring saved <b>.json</b> bids into the list first.</p>
       <div id="compareBody"></div>
       <input type="file" id="fileB" class="file" accept=".json" onchange="handleFileB(event)">
     </section>
+    <section class="panel" id="p-help">
+      <h1 class="h1">Help &amp; guide</h1>
+      <p class="lead">Everything BidReel does, and how each part works. All data lives only in your browser — nothing is uploaded.</p>
+
+      <h2>Studio name &amp; branding</h2>
+      <p>The name at the <b>top-left</b> that reads <span class="kbd">YOUR STUDIO NAME</span> is editable — click it and type your studio / company / boutique name. It appears on the PDF letterhead. You can also set it, plus an optional <b>tagline</b> and <b>contact / website</b> line, under <b>Project → Studio / company name</b>. Those two extra lines show under your studio name on the exported PDF.</p>
+
+      <h2>Projects (multiple clients)</h2>
+      <p>The <b>Project</b> bar under the top menu lets you keep many bids in one workspace — e.g. one for Marvel, one for Sony, one for Universal — and jump between them without closing the app.</p>
+      <ul>
+        <li><b>Dropdown</b> — switch the active project.</li>
+        <li><b>+ New</b> — start a blank bid.</li>
+        <li><b>Duplicate</b> — copy the current bid as a starting point.</li>
+        <li><b>Delete</b> — remove the current bid (there is always at least one).</li>
+        <li><b>Load</b> (top bar) adds a saved <b>.json</b> into this list, so imported bids accumulate and can be switched and compared.</li>
+      </ul>
+
+      <h2>Project tab</h2>
+      <p>Project name, client, dates and the financial/tax section. <b>Work days available</b> drives overhead. The <b>Rebate jurisdiction</b> dropdown auto-fills a current headline VFX incentive rate (still editable), and <b>Rebate handling</b> decides whether the rebate is subtracted from the client total (you claim it) or shown for information only (the client/production claims it). The <b>Payment schedule</b> is fully editable — any split you like, as long as it totals 100%.</p>
+
+      <h2>Rates &amp; roles tab</h2>
+      <p><b>Departments</b> are billed per day inside each asset/shot; set the average day rate, markup and type (<b>Labor</b> or <b>Compute</b> — Compute is kept out of the rebate labor base). Add or remove departments freely. <b>Overhead per day</b> × work days, and <b>Setup</b> is a one-time flat cost per new team member. <b>Roles, supervision &amp; production</b> is where you bill people by time — VFX Producer, VFX Supervisor, Coordinator, Editorial, I/O, on-set crew — as rate × (1 + markup) × quantity (Day / Week / Month / Flat). These add to the grand total.</p>
+
+      <h2>Assets &amp; Shots tabs</h2>
+      <ul>
+        <li><b>Detailed vs Summary</b> — Detailed shows the per-department day columns for data entry; Summary hides them for a clean read or a client screen-share.</li>
+        <li><b>Thumbnail</b> — click the image box on a row to upload a picture or paste a direct image link, to identify shots fast.</li>
+        <li><b>Complexity</b> — a dropdown (Low / Medium / High / Hero) with a <b>Custom…</b> option to type your own. It is a label only; it does <b>not</b> affect cost — cost comes from the day counts.</li>
+      </ul>
+
+      <h2>Totals &amp; Charts</h2>
+      <p><b>Totals</b> summarizes the whole bid and breaks it down by department. <b>Charts</b> shows bid days by department, cost by department (with the highest and lowest called out) and a projected cash-flow line from your payment schedule.</p>
+
+      <h2>Compare</h2>
+      <p>Pick any two projects (A and B) from the workspace and see totals side by side with the difference, each in its own currency.</p>
+
+      <h2>Import &amp; export</h2>
+      <ul>
+        <li><b>Save bid</b> / <b>Load</b> — save the current bid as a <b>.json</b> (the full, re-loadable format) and load it back on any computer. Load adds it to your project list.</li>
+        <li><b>Import CSV</b> — bring in a list of assets/shots. Use a header row with <span class="kbd">Kind, Name, Type, Complexity</span> and one column per department (matching your department names). Rows with Kind = Shot go to Shots; everything else to Assets. From Excel, use <i>Save As → CSV</i> to prepare a file.</li>
+        <li><b>Export CSV</b> — a flat sheet of the current bid.</li>
+        <li><b>Export Excel</b> — a structured <b>.xlsx</b> workbook with separate sheets: Summary, Assets, Shots, Roles, Departments, Payments (numbers as real numbers).</li>
+        <li><b>Export PDF</b> — a client-ready bid document (use your browser's “Save as PDF” in the print dialog).</li>
+      </ul>
+
+      <h2>Saving &amp; privacy</h2>
+      <p>BidReel is a single offline file. Your workspace is auto-saved in this browser only. To move between computers, use <b>Save bid</b> and <b>Load</b>. Uploaded thumbnails are stored inside the .json, so many heavy images make the file larger — image links are lighter.</p>
+    </section>
+
   </main>
 </div>
 
@@ -344,11 +423,27 @@ function defaultState(){return {
   payments:[{label:"Deposit — prior to start",pct:0.50},{label:"On delivery of first block",pct:0.25},{label:"Final delivery & acceptance",pct:0.25}],
   assets:sampleAssets(),shots:sampleShots()};}
 
-const LS_KEY="bidreel_v1";
-let state, stateB=null, assetsView="detailed", shotsView="detailed", thumbTarget=null;
-try{const raw=localStorage.getItem(LS_KEY);state=raw?migrate(JSON.parse(raw)):defaultState();}
-catch(e){state=defaultState();}
-function autosave(){try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){}}
+const WS_KEY="bidreel_ws_v1";
+let workspace, state, assetsView="detailed", shotsView="detailed", thumbTarget=null, cmpA=null, cmpB=null;
+function uid(){return "b"+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function defaultBid(){const b=defaultState();delete b.studio;b.id=uid();return b;}
+function isDefaultStudio(s){return !s||s==="YOUR STUDIO NAME";}
+function normalizeBid(o){const b=migrate(o);delete b.studio;if(!b.id)b.id=uid();return b;}
+function loadWorkspace(){
+  try{const raw=localStorage.getItem(WS_KEY);if(raw){const ws=JSON.parse(raw);
+    ws.bids=(ws.bids||[]).map(normalizeBid);if(!ws.bids.length)ws.bids=[defaultBid()];
+    if(!ws.activeId||!ws.bids.some(b=>b.id===ws.activeId))ws.activeId=ws.bids[0].id;
+    ws.studio=ws.studio||"YOUR STUDIO NAME";ws.studioTagline=ws.studioTagline||"";ws.studioContact=ws.studioContact||"";
+    return ws;}}catch(e){}
+  try{const old=localStorage.getItem("bidreel_v1");if(old){const s=JSON.parse(old);const studio=s.studio;const bid=normalizeBid(s);
+    return {studio:studio||"YOUR STUDIO NAME",studioTagline:"",studioContact:"",bids:[bid],activeId:bid.id};}}catch(e){}
+  const b=defaultBid();return {studio:"YOUR STUDIO NAME",studioTagline:"",studioContact:"",bids:[b],activeId:b.id};
+}
+workspace=loadWorkspace();
+function activeBid(){return workspace.bids.find(b=>b.id===workspace.activeId)||workspace.bids[0];}
+state=activeBid();
+function autosave(){try{localStorage.setItem(WS_KEY,JSON.stringify(workspace));}catch(e){}}
+function studioName(){return workspace.studio||"YOUR STUDIO NAME";}
 
 function migrate(s){
   const d=defaultState();
@@ -433,18 +528,23 @@ function field(label,value,type,onInput,opts={}){
   if(opts.hint){const h=document.createElement("div");h.className="hint";h.textContent=opts.hint;wrap.appendChild(h);}
   return wrap;
 }
-const P=state.project;
 function renderProject(){
+  const P=state.project;
   const g1=document.getElementById("proj-grid-1");g1.innerHTML="";
   g1.append(
-    field("Project name",P.name,"text",v=>P.name=v),
-    field("Client / Studio",P.client,"text",v=>P.client=v),
+    field("Project name",P.name,"text",v=>{P.name=v;renderBidSelect();}),
+    field("Client / Studio",P.client,"text",v=>{P.client=v;renderBidSelect();}),
     field("Bid number",P.bidNo,"text",v=>P.bidNo=v),
     field("Bid type",P.bidType,"select",v=>P.bidType=v,{options:["Script bid","Temp bid","Final bid","Change order"]}),
     field("Production type",P.prodType,"select",v=>P.prodType=v,{options:["Feature Film","TV Episodic","Streaming Series","Commercial","Trailer","Episodic Block"]}),
     field("Director",P.director,"text",v=>P.director=v),
     field("Client VFX Supervisor",P.clientSup,"text",v=>P.clientSup=v),
     field("Client VFX Producer",P.clientProd,"text",v=>P.clientProd=v));
+  const gs=document.getElementById("proj-grid-studio");if(gs){gs.innerHTML="";
+    gs.append(
+      field("Studio / company name",workspace.studio,"text",v=>{workspace.studio=v;document.getElementById("studioName").value=v;}),
+      field("Studio tagline (PDF)",workspace.studioTagline||"","text",v=>workspace.studioTagline=v,{placeholder:"e.g. Post-Production & VFX"}),
+      field("Studio contact / website (PDF)",workspace.studioContact||"","text",v=>workspace.studioContact=v,{placeholder:"e.g. lacuspost.com"}));}
   const g2=document.getElementById("proj-grid-2");g2.innerHTML="";
   g2.append(
     field("Bid due date",P.bidDue,"date",v=>P.bidDue=v),
@@ -581,12 +681,26 @@ function buildBidTable(kind){
   document.getElementById(kind+"Count").textContent=rows.length+(kind==="assets"?" assets":" shots");
   document.querySelectorAll("#"+kind+"Seg button").forEach(b=>b.classList.toggle("on",b.dataset.v===viewOf(kind)));
 }
+const COMPLEXITY_PRESETS=["Low","Medium","High","Hero"];
+function diffSelectHTML(r){const val=r.diff||"";const inList=COMPLEXITY_PRESETS.includes(val);
+  let o=`<option value=''${val===""?" selected":""}>\u2014</option>`;
+  COMPLEXITY_PRESETS.forEach(x=>o+=`<option${x===val?" selected":""}>${esc(x)}</option>`);
+  if(val&&!inList)o+=`<option selected>${esc(val)}</option>`;
+  o+=`<option value='__custom__'>Custom\u2026</option>`;
+  return `<select class='diffsel' data-diff title='Complexity you assign \u2014 does not affect cost'>${o}</select>`;}
+function wireDiff(kind,tr){const ri=+tr.dataset.ri;const r=state[kind][ri];const dc=tr.querySelector("[data-diff]");if(!dc)return;
+  dc.addEventListener("change",()=>{
+    if(dc.value==="__custom__"){const td=dc.closest("td");td.innerHTML="<input type='text' class='diffcustom' value='' placeholder='Type\u2026'>";
+      const inp=td.querySelector("input");inp.focus();
+      const commit=()=>{r.diff=inp.value.trim();autosave();td.innerHTML=diffSelectHTML(r);wireDiff(kind,tr);};
+      inp.addEventListener("blur",commit);inp.addEventListener("keydown",e=>{if(e.key==="Enter")inp.blur();});
+    }else{r.diff=dc.value;autosave();}});}
 function rowHTML(kind,r,ri,detailed){
   let h=`<tr data-ri='${ri}'><td class='stick c-idx'>${ri+1}</td>`;
   h+=`<td class='stick c-thumb'><div class='thumbbox' data-thumb title='Click to add / change image (upload or paste a link)'>${r.thumb?`<img src='${esc(r.thumb)}' onerror="this.style.display='none'">`:`<span class='ph'>+img</span>`}</div></td>`;
   h+=`<td class='stick c-name'><input type='text' value='${esc(r.name)}' data-f='name' title='${esc(r.name)}'></td>`;
   h+=`<td class='tcell' style='min-width:120px'><input type='text' value='${esc(r.type)}' data-f='type' title='${esc(r.type)}' style='width:120px'></td>`;
-  h+=`<td class='tcell' style='min-width:96px'><input type='text' value='${esc(r.diff)}' data-f='diff' title='Complexity rating you assign — does not affect cost' style='width:96px;text-align:center'></td>`;
+  h+=`<td class='tcell' style='min-width:130px' data-diffcell>${diffSelectHTML(r)}</td>`;
   if(detailed)state.departments.forEach((d,di)=>{const v=r.days[di];h+=`<td class='day'><input type='number' data-d='${di}' value='${v?v:""}' style='width:52px'></td>`;});
   h+=`<td class='money' data-labor></td><td class='money' data-comp></td><td class='total' data-tot></td>`;
   h+=`<td class='act'><button class='del' title='Delete' data-del>&times;</button></td></tr>`;
@@ -597,6 +711,7 @@ function wireRow(kind,tr){
   tr.querySelectorAll("input[data-f]").forEach(inp=>inp.addEventListener("input",()=>{r[inp.dataset.f]=inp.value;inp.title=inp.value;autosave();}));
   tr.querySelectorAll("input[data-d]").forEach(inp=>inp.addEventListener("input",()=>{r.days[+inp.dataset.d]=+inp.value||0;refreshRow(tr,r);updateReadout();autosave();}));
   const tb=tr.querySelector("[data-thumb]");if(tb)tb.addEventListener("click",()=>editThumb(kind,ri));
+  wireDiff(kind,tr);
   tr.querySelector("[data-del]").addEventListener("click",()=>{state[kind].splice(ri,1);buildBidTable(kind);updateReadout();autosave();});
   refreshRow(tr,r);
 }
@@ -704,28 +819,34 @@ function renderCharts(){
 }
 
 /* ---- compare ---- */
-function loadBidB(){document.getElementById("fileB").click();}
-function handleFileB(ev){const f=ev.target.files[0];if(!f)return;const rd=new FileReader();
-  rd.onload=()=>{try{stateB=migrate(JSON.parse(rd.result));renderCompare();}catch(e){alert("Could not read bid B.");}};rd.readAsText(f);ev.target.value="";}
-function clearB(){stateB=null;renderCompare();}
 function renderCompare(){
   const wrap=document.getElementById("compareBody");
-  if(!stateB){wrap.innerHTML=`<div style="margin-bottom:12px"><button class="tbtn gold" onclick="loadBidB()">Load bid B (.json)</button></div><div class="note">Load a second saved bid to compare it against the one you're working on (A). Both totals are computed live and independently.</div>`;return;}
-  const A=computeBid(state),B=computeBid(stateB);
+  if(cmpA===null||!workspace.bids.some(b=>b.id===cmpA))cmpA=workspace.activeId;
+  if(cmpB===null||!workspace.bids.some(b=>b.id===cmpB)){const other=workspace.bids.find(b=>b.id!==cmpA);cmpB=other?other.id:cmpA;}
+  const opt=id=>workspace.bids.map(b=>`<option value="${b.id}"${b.id===id?" selected":""}>${esc((b.project.name||"Bid")+" \u2014 "+(b.project.client||""))}</option>`).join("");
+  const bidA=workspace.bids.find(b=>b.id===cmpA)||state, bidB=workspace.bids.find(b=>b.id===cmpB)||state;
+  const A=computeBid(bidA),B=computeBid(bidB);
+  let h=`<div style="margin-bottom:14px;display:flex;gap:16px;align-items:center;flex-wrap:wrap">`+
+    `<label style="font-size:12px;color:var(--mut)">A&nbsp;<select onchange="cmpA=this.value;renderCompare()" style="background:#0f1417;border:1px solid var(--line2);color:var(--ink);padding:7px 10px;border-radius:6px">${opt(cmpA)}</select></label>`+
+    `<label style="font-size:12px;color:var(--mut)">B&nbsp;<select onchange="cmpB=this.value;renderCompare()" style="background:#0f1417;border:1px solid var(--line2);color:var(--ink);padding:7px 10px;border-radius:6px">${opt(cmpB)}</select></label>`+
+    `<button class="tbtn" onclick="loadBidB()">Load .json into list</button></div>`;
   const rows=[["Assets total",A.assetsTotal,B.assetsTotal,"m"],["Shots total",A.shotsTotal,B.shotsTotal,"m"],
     ["Roles & supervision",A.roles,B.roles,"m"],["Overhead + setup",A.overhead+A.setup,B.overhead+B.setup,"m"],
     ["Grand total",A.grand,B.grand,"m"],["Estimated rebate",A.rebate,B.rebate,"m"],["To client",A.afterDiscount,B.afterDiscount,"m"],
-    ["Total bid-days",A.totalDays,B.totalDays,"d"],["# assets",state.assets.length,stateB.assets.length,"i"],["# shots",state.shots.length,stateB.shots.length,"i"]];
-  let h=`<div style="margin-bottom:12px"><button class="tbtn" onclick="loadBidB()">Load / replace bid B</button> <button class="tbtn" onclick="clearB()">Clear B</button></div>`;
-  h+=`<div class="tscroll" style="max-width:860px"><table><thead><tr><th style='text-align:left;padding-left:12px'>Metric</th><th class='n' style='text-align:right;padding-right:12px'>A · ${esc(state.project.name||"This bid")} (${state.project.currency})</th><th class='n' style='text-align:right;padding-right:12px'>B · ${esc(stateB.project.name||"Bid B")} (${stateB.project.currency})</th><th class='n' style='text-align:right;padding-right:12px'>Difference (B - A)</th></tr></thead><tbody>`;
-  rows.forEach(r=>{const[k,a,b,t]=r;const fa=t==="m"?moneyOf(state,a):num(a,0),fb=t==="m"?moneyOf(stateB,b):num(b,0);
-    const dd=b-a,col=dd>0?"var(--red)":dd<0?"var(--teal)":"var(--dim)",df=t==="m"?moneyOf(stateB,Math.abs(dd)):num(Math.abs(dd),0),sign=dd>0?"+":dd<0?"-":"";
+    ["Total bid-days",A.totalDays,B.totalDays,"d"],["# assets",bidA.assets.length,bidB.assets.length,"i"],["# shots",bidA.shots.length,bidB.shots.length,"i"]];
+  h+=`<div class="tscroll" style="max-width:860px"><table><thead><tr><th style='text-align:left;padding-left:12px'>Metric</th><th class='n' style='text-align:right;padding-right:12px'>A \u00b7 ${esc(bidA.project.name||"A")} (${bidA.project.currency})</th><th class='n' style='text-align:right;padding-right:12px'>B \u00b7 ${esc(bidB.project.name||"B")} (${bidB.project.currency})</th><th class='n' style='text-align:right;padding-right:12px'>Difference (B - A)</th></tr></thead><tbody>`;
+  rows.forEach(r=>{const[k,a,b,t]=r;const fa=t==="m"?moneyOf(bidA,a):num(a,0),fb=t==="m"?moneyOf(bidB,b):num(b,0);
+    const dd=b-a,col=dd>0?"var(--red)":dd<0?"var(--teal)":"var(--dim)",df=t==="m"?moneyOf(bidB,Math.abs(dd)):num(Math.abs(dd),0),sign=dd>0?"+":dd<0?"-":"";
     h+=`<tr><td style='padding:8px 12px'>${k}</td><td class='money' style='color:var(--ink)'>${fa}</td><td class='money' style='color:var(--ink)'>${fb}</td><td class='money' style='color:${col}'>${sign}${df}</td></tr>`;});
   h+=`</tbody></table></div>`;
-  const chart=svgBars(["Grand total","To client"],[{name:"A",color:"#49cbb8",values:[A.grand,A.afterDiscount]},{name:"B",color:"#e0a63c",values:[B.grand,B.afterDiscount]}],v=>money(v));
+  const chart=svgBars(["Grand total","To client"],[{name:"A",color:"#49cbb8",values:[A.grand,A.afterDiscount]},{name:"B",color:"#e0a63c",values:[B.grand,B.afterDiscount]}],v=>moneyOf(bidA,v));
   h+=`<div class="chartwrap" style="margin-top:16px"><h3>Grand total &amp; to client</h3>${chart}</div>`;
   wrap.innerHTML=h;
 }
+function loadBidB(){document.getElementById("fileB").click();}
+function handleFileB(ev){const f=ev.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{try{const raw=JSON.parse(rd.result);const bid=normalizeBid(raw);if(isDefaultStudio(workspace.studio)&&raw.studio)workspace.studio=raw.studio;
+    workspace.bids.push(bid);cmpB=bid.id;autosave();renderBidSelect();renderCompare();}catch(e){alert("Could not read that .json.");}};rd.readAsText(f);ev.target.value="";}
 
 /* ---- readout ---- */
 function updateReadout(){
@@ -753,17 +874,31 @@ document.querySelectorAll(".navitem").forEach(n=>n.addEventListener("click",()=>
 document.querySelectorAll("#assetsSeg button").forEach(b=>b.addEventListener("click",()=>setView("assets",b.dataset.v)));
 document.querySelectorAll("#shotsSeg button").forEach(b=>b.addEventListener("click",()=>setView("shots",b.dataset.v)));
 
-const sn=document.getElementById("studioName");sn.value=state.studio;
-sn.addEventListener("input",()=>{state.studio=sn.value;autosave();});
+const sn=document.getElementById("studioName");sn.value=studioName();
+sn.addEventListener("input",()=>{workspace.studio=sn.value;autosave();});
+function renderBidSelect(){const sel=document.getElementById("bidSelect");if(!sel)return;
+  sel.innerHTML=workspace.bids.map(b=>`<option value="${b.id}"${b.id===workspace.activeId?" selected":""}>${esc((b.project.name||"Untitled")+" \u2014 "+(b.project.client||"\u2014"))}</option>`).join("");
+  const cnt=document.getElementById("bidCount");if(cnt)cnt.textContent=workspace.bids.length+" project"+(workspace.bids.length!==1?"s":"")+" in this workspace";}
+function switchBid(id){workspace.activeId=id;state=activeBid();autosave();renderAll();}
+function addBid(){const b=defaultBid();b.assets=[];b.shots=[];b.project.name="New Bid";b.project.client="Client";workspace.bids.push(b);switchBid(b.id);}
+function duplicateBid(){const b=JSON.parse(JSON.stringify(state));b.id=uid();b.project.name=(b.project.name||"Bid")+" (copy)";workspace.bids.push(b);switchBid(b.id);}
+function deleteBid(){if(workspace.bids.length<=1){alert("You need at least one project.");return;}
+  if(!confirm('Delete project "'+(state.project.name||"")+'"? This cannot be undone.'))return;
+  workspace.bids=workspace.bids.filter(b=>b.id!==workspace.activeId);workspace.activeId=workspace.bids[0].id;state=activeBid();autosave();renderAll();}
 
 /* ---- save / load / export ---- */
-function saveBid(){const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const a=document.createElement("a");
+function saveBid(){const out=Object.assign({studio:workspace.studio,studioTagline:workspace.studioTagline||"",studioContact:workspace.studioContact||""},state);
+  const blob=new Blob([JSON.stringify(out,null,2)],{type:"application/json"});const a=document.createElement("a");
   const nm=(state.project.name||"bid")+"_bid_"+(state.project.bidNo||"1");a.href=URL.createObjectURL(blob);a.download=nm.replace(/[^a-z0-9_\-]/gi,"_")+".json";a.click();URL.revokeObjectURL(a.href);}
 function loadBid(){document.getElementById("fileInput").click();}
 function handleFile(ev){const f=ev.target.files[0];if(!f)return;const rd=new FileReader();
-  rd.onload=()=>{try{state=migrate(JSON.parse(rd.result));autosave();renderAll();}catch(e){alert("Could not read the file. Is it a .json saved by this app?");}};rd.readAsText(f);ev.target.value="";}
-function newBid(){if(!confirm("Start a new bid? This clears the screen (save first if you need to)."))return;
-  state=defaultState();state.assets=[];state.shots=[];autosave();renderAll();}
+  rd.onload=()=>{try{const raw=JSON.parse(rd.result);const bid=normalizeBid(raw);
+    if(isDefaultStudio(workspace.studio)&&raw.studio)workspace.studio=raw.studio;
+    if(raw.studioTagline&&!workspace.studioTagline)workspace.studioTagline=raw.studioTagline;
+    if(raw.studioContact&&!workspace.studioContact)workspace.studioContact=raw.studioContact;
+    workspace.bids.push(bid);switchBid(bid.id);}
+    catch(e){alert("Could not read the file. Is it a .json saved by this app?");}};rd.readAsText(f);ev.target.value="";}
+function newBid(){addBid();}
 function exportCSV(){
   const dn=state.departments.map(d=>d.name);const head=["Kind","#","Name","Type","Complexity",...dn,"Labor","Compute","Total"];const lines=[head.join(",")];
   const push=(kind,arr)=>arr.forEach((r,i)=>lines.push([kind,i+1,q(r.name),q(r.type),q(r.diff),...r.days.map(x=>x||0),Math.round(rowLabor(r)),Math.round(rowCompute(r)),Math.round(rowTotal(r))].join(",")));
@@ -773,6 +908,177 @@ function exportCSV(){
   lines.push(["To Client","","","","",...blanks,"","",Math.round(c.afterDiscount)].join(","));
   const blob=new Blob([lines.join("\n")],{type:"text/csv"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(state.project.name||"bid")+"_export.csv";a.click();URL.revokeObjectURL(a.href);}
 function q(s){s=String(s==null?"":s);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+
+/* ---- Excel (.xlsx) writer — pure JS, offline, no libraries. Styled workbook. ---- */
+const _CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function _crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=_CRC[(c^u8[i])&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+const _enc=new TextEncoder();
+function _xesc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function _colL(n){let s="";while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=(n-m-1)/26;}return s;}
+/* style ids (see _stylesXml cellXfs order) */
+const XS={def:0,title:1,sub:2,sec:3,head:4,txt:5,money:6,num1:7,pct:8,tlabel:9,tmoney:10,tnum:11,sumL:12,sumV:13,ctr:14,plain:15,numg:16};
+function _cx(v,s,t){return {v:v,s:s===undefined?0:s,t:t};}
+function _cellXml(ref,cell){
+  if(cell===null||cell===undefined)return "";
+  let v=cell,s=0,t;
+  if(typeof cell==="object"&&cell!==null){v=cell.v;s=cell.s||0;t=cell.t;}
+  if(v===null||v===undefined||v===""){return s?`<c r="${ref}" s="${s}"/>`:"";}
+  const isNum=(t==="n")||(t===undefined&&typeof v==="number"&&isFinite(v));
+  if(isNum)return `<c r="${ref}" s="${s}"><v>${v}</v></c>`;
+  return `<c r="${ref}" s="${s}" t="inlineStr"><is><t xml:space="preserve">${_xesc(v)}</t></is></c>`;
+}
+function _sheetXml(sheet){
+  const rows=sheet.rows||[];let cols="";
+  if(sheet.cols&&sheet.cols.length){cols='<cols>'+sheet.cols.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')+'</cols>';}
+  let x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+cols+'<sheetData>';
+  rows.forEach((row,ri)=>{const r=ri+1;x+=`<row r="${r}">`;row.forEach((cell,ci)=>{x+=_cellXml(_colL(ci+1)+r,cell);});x+='</row>';});
+  return x+'</sheetData></worksheet>';
+}
+function _stylesXml(sym){
+  const m='&quot;'+_xesc(sym)+'&quot;#,##0;[Red]-&quot;'+_xesc(sym)+'&quot;#,##0';
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+
+  '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
+  '<numFmts count="3"><numFmt numFmtId="164" formatCode="'+m+'"/><numFmt numFmtId="165" formatCode="0.0"/><numFmt numFmtId="166" formatCode="0%"/></numFmts>'+
+  '<fonts count="6">'+
+    '<font><sz val="11"/><name val="Calibri"/></font>'+
+    '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>'+
+    '<font><b/><sz val="18"/><color rgb="FFB07A16"/><name val="Calibri"/></font>'+
+    '<font><sz val="10"/><color rgb="FF7A7A7A"/><name val="Calibri"/></font>'+
+    '<font><b/><sz val="11"/><color rgb="FF1E262C"/><name val="Calibri"/></font>'+
+    '<font><b/><sz val="12"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>'+
+  '</fonts>'+
+  '<fills count="5">'+
+    '<fill><patternFill patternType="none"/></fill>'+
+    '<fill><patternFill patternType="gray125"/></fill>'+
+    '<fill><patternFill patternType="solid"><fgColor rgb="FF2C363D"/><bgColor indexed="64"/></patternFill></fill>'+
+    '<fill><patternFill patternType="solid"><fgColor rgb="FFF5EEDD"/><bgColor indexed="64"/></patternFill></fill>'+
+    '<fill><patternFill patternType="solid"><fgColor rgb="FFE0A63C"/><bgColor indexed="64"/></patternFill></fill>'+
+  '</fills>'+
+  '<borders count="3">'+
+    '<border><left/><right/><top/><bottom/><diagonal/></border>'+
+    '<border><left style="thin"><color rgb="FFD9D9D9"/></left><right style="thin"><color rgb="FFD9D9D9"/></right><top style="thin"><color rgb="FFD9D9D9"/></top><bottom style="thin"><color rgb="FFD9D9D9"/></bottom></border>'+
+    '<border><bottom style="medium"><color rgb="FFE0A63C"/></bottom></border>'+
+  '</borders>'+
+  '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'+
+  '<cellXfs count="17">'+
+    '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'+
+    '<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>'+
+    '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>'+
+    '<xf numFmtId="0" fontId="5" fillId="4" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>'+
+    '<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>'+
+    '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>'+
+    '<xf numFmtId="164" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>'+
+    '<xf numFmtId="165" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>'+
+    '<xf numFmtId="166" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>'+
+    '<xf numFmtId="0" fontId="4" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>'+
+    '<xf numFmtId="164" fontId="4" fillId="3" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>'+
+    '<xf numFmtId="165" fontId="4" fillId="3" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>'+
+    '<xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="left"/></xf>'+
+    '<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="right"/></xf>'+
+    '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>'+
+    '<xf numFmtId="49" fontId="0" fillId="0" borderId="0" xfId="0"/>'+
+    '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>'+
+  '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'+
+  '</styleSheet>';
+}
+function buildXlsx(sheets,sym){
+  const files=[];
+  files.push(["[Content_Types].xml",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+sheets.map((s,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')+'</Types>']);
+  files.push(["_rels/.rels",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>']);
+  files.push(["xl/workbook.xml",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'+sheets.map((s,i)=>`<sheet name="${_xesc(s.name).slice(0,31)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')+'</sheets></workbook>']);
+  const wbRels=sheets.map((s,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')+`<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>`;
+  files.push(["xl/_rels/workbook.xml.rels",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+wbRels+'</Relationships>']);
+  files.push(["xl/styles.xml",_stylesXml(sym||"$")]);
+  sheets.forEach((s,i)=>files.push([`xl/worksheets/sheet${i+1}.xml`,_sheetXml(s)]));
+  const chunks=[];let offset=0;const central=[];
+  const u16=n=>[n&0xFF,(n>>8)&0xFF],u32=n=>[n&0xFF,(n>>8)&0xFF,(n>>16)&0xFF,(n>>>24)&0xFF];
+  files.forEach(([name,content])=>{const nameB=_enc.encode(name),data=_enc.encode(content),crc=_crc32(data);
+    const local=[].concat(u32(0x04034b50),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(nameB.length),u16(0));
+    chunks.push(new Uint8Array(local),nameB,data);
+    const cent=[].concat(u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(nameB.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset));
+    central.push({head:new Uint8Array(cent),name:nameB});offset+=local.length+nameB.length+data.length;});
+  const cdStart=offset;let cdSize=0;central.forEach(c=>{chunks.push(c.head,c.name);cdSize+=c.head.length+c.name.length;});
+  chunks.push(new Uint8Array([].concat(u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(cdSize),u32(cdStart),u16(0))));
+  let total=0;chunks.forEach(c=>total+=c.length);const out=new Uint8Array(total);let p=0;chunks.forEach(c=>{out.set(c,p);p+=c.length;});
+  return out;
+}
+const CURSYM={USD:"$",CAD:"$",AUD:"$",NZD:"$",MXN:"$",GBP:"\u00a3",EUR:"\u20ac"};
+function exportXLSX(){
+  const c=calc(),p=state.project,cur=p.currency||"USD",sym=CURSYM[cur]||"$",dn=state.departments.map(d=>d.name);
+  const secRow=(txt,span)=>{const a=[_cx(txt,XS.sec)];for(let i=1;i<span;i++)a.push(_cx("",XS.sec));return a;};
+  /* Summary */
+  const S=[];
+  S.push([_cx("VFX BID \u2014 "+studioName(),XS.title)]);
+  S.push([_cx((p.name||"")+"   \u00b7   Bid "+(p.bidNo||""),XS.sub)]);
+  S.push([]);
+  S.push(secRow("PROJECT",2));
+  [["Studio",studioName()],["Client",p.client],["Bid type",p.bidType],["Production type",p.prodType],
+   ["Currency",cur],["Rebate jurisdiction",p.jurisdiction],
+   ["Rebate handling",c.rebateApplied?"Applied \u2014 client total reduced":"Informational only"]].forEach(r=>S.push([_cx(r[0],XS.sumL),_cx(r[1],XS.plain)]));
+  S.push([]);
+  S.push(secRow("BID SUMMARY",2));
+  S.push([_cx("Line",XS.head),_cx("Amount ("+cur+")",XS.head)]);
+  S.push([_cx("Assets ("+state.assets.length+")",XS.txt),_cx(Math.round(c.assetsTotal),XS.money)]);
+  S.push([_cx("Shots ("+state.shots.length+")",XS.txt),_cx(Math.round(c.shotsTotal),XS.money)]);
+  S.push([_cx("Roles & supervision",XS.txt),_cx(Math.round(c.roles),XS.money)]);
+  S.push([_cx("Overhead",XS.txt),_cx(Math.round(c.overhead),XS.money)]);
+  S.push([_cx("Setup",XS.txt),_cx(Math.round(c.setup),XS.money)]);
+  S.push([_cx("Grand total",XS.tlabel),_cx(Math.round(c.grand),XS.tmoney)]);
+  S.push([_cx(c.rebateApplied?"Estimated rebate (applied)":"Estimated rebate (info)",XS.txt),_cx(Math.round(c.rebate),XS.money)]);
+  S.push([_cx("On-schedule discount",XS.txt),_cx(Math.round(p.discount||0),XS.money)]);
+  S.push([_cx("Total to client",XS.tlabel),_cx(Math.round(c.afterDiscount),XS.tmoney)]);
+  const summary={name:"Summary",cols:[30,20],rows:S};
+  /* Assets / Shots */
+  const bidSheet=(name,arr)=>{const rows=[];
+    rows.push([_cx("#",XS.head),_cx("Name",XS.head),_cx("Type",XS.head),_cx("Complexity",XS.head),...dn.map(d=>_cx(d,XS.head)),_cx("Labor ("+cur+")",XS.head),_cx("Compute ("+cur+")",XS.head),_cx("Total ("+cur+")",XS.head)]);
+    arr.forEach((r,i)=>rows.push([_cx(i+1,XS.ctr),_cx(r.name||"",XS.txt),_cx(r.type||"",XS.txt),_cx(r.diff||"",XS.ctr),...r.days.map(x=>_cx(+x||0,XS.numg)),_cx(Math.round(rowLabor(r)),XS.money),_cx(Math.round(rowCompute(r)),XS.money),_cx(Math.round(rowTotal(r)),XS.money)]));
+    rows.push([_cx("",XS.tlabel),_cx("TOTAL",XS.tlabel),_cx("",XS.tlabel),_cx("",XS.tlabel),...dn.map(()=>_cx("",XS.tlabel)),_cx(Math.round(arr.reduce((a,r)=>a+rowLabor(r),0)),XS.tmoney),_cx(Math.round(arr.reduce((a,r)=>a+rowCompute(r),0)),XS.tmoney),_cx(Math.round(arr.reduce((a,r)=>a+rowTotal(r),0)),XS.tmoney)]);
+    return {name:name,cols:[5,30,18,14,...dn.map(()=>10),13,13,14],rows:rows};};
+  /* Roles */
+  const roleRows=[[_cx("Role",XS.head),_cx("Rate ("+cur+")",XS.head),_cx("Markup",XS.head),_cx("Basis",XS.head),_cx("Qty",XS.head),_cx("Total ("+cur+")",XS.head)]];
+  state.roles.forEach(o=>roleRows.push([_cx(o.role||"",XS.txt),_cx(+o.rate||0,XS.money),_cx(+o.mk||0,XS.num1),_cx(o.basis||"",XS.ctr),_cx(+o.qty||0,XS.numg),_cx(Math.round(roleTotal(o)),XS.money)]));
+  roleRows.push([_cx("TOTAL",XS.tlabel),_cx("",XS.tlabel),_cx("",XS.tlabel),_cx("",XS.tlabel),_cx("",XS.tlabel),_cx(Math.round(c.roles),XS.tmoney)]);
+  const roles={name:"Roles",cols:[32,13,10,10,8,15],rows:roleRows};
+  /* Departments */
+  const deptRows=[[_cx("Department",XS.head),_cx("Type",XS.head),_cx("Avg/day ("+cur+")",XS.head),_cx("Markup",XS.head),_cx("Bid rate ("+cur+")",XS.head),_cx("Asset days",XS.head),_cx("Shot days",XS.head),_cx("Total days",XS.head),_cx("Cost ("+cur+")",XS.head)]];
+  state.departments.forEach((d,i)=>{const ad=state.assets.reduce((a,r)=>a+(+r.days[i]||0),0),sd=state.shots.reduce((a,r)=>a+(+r.days[i]||0),0);
+    deptRows.push([_cx(d.name,XS.txt),_cx(d.kind,XS.ctr),_cx(+d.avg||0,XS.money),_cx(+d.mk||0,XS.num1),_cx(Math.round(bidRate(i)),XS.money),_cx(ad,XS.numg),_cx(sd,XS.numg),_cx(ad+sd,XS.numg),_cx(Math.round((ad+sd)*bidRate(i)),XS.money)]);});
+  const depts={name:"Departments",cols:[24,11,13,10,13,11,11,11,14],rows:deptRows};
+  /* Payments */
+  const payRows=[[_cx("Milestone",XS.head),_cx("%",XS.head),_cx("Amount ("+cur+")",XS.head)]];let tp=0;
+  state.payments.forEach(m=>{tp+=+m.pct||0;payRows.push([_cx(m.label||"",XS.txt),_cx(+m.pct||0,XS.pct),_cx(Math.round((+m.pct||0)*c.afterDiscount),XS.money)]);});
+  payRows.push([_cx("TOTAL",XS.tlabel),_cx(tp,XS.pct),_cx(Math.round(c.afterDiscount),XS.tmoney)]);
+  const pays={name:"Payments",cols:[34,12,16],rows:payRows};
+  const bytes=buildXlsx([summary,bidSheet("Assets",state.assets),bidSheet("Shots",state.shots),roles,depts,pays],sym);
+  const blob=new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(p.name||"bid").replace(/[^a-z0-9_\-]/gi,"_")+".xlsx";a.click();URL.revokeObjectURL(a.href);
+}
+/* ---- CSV import ---- */
+function parseCSV(text){const rows=[];let cur="",row=[],inq=false;text=text.replace(/\r/g,"");
+  for(let i=0;i<text.length;i++){const ch=text[i];
+    if(inq){if(ch==='"'){if(text[i+1]==='"'){cur+='"';i++;}else inq=false;}else cur+=ch;}
+    else{if(ch==='"')inq=true;else if(ch===',') {row.push(cur);cur="";}else if(ch==='\n'){row.push(cur);rows.push(row);row=[];cur="";}else cur+=ch;}}
+  if(cur!==""||row.length){row.push(cur);rows.push(row);}
+  return rows.filter(r=>!(r.length===1&&r[0].trim()===""));}
+function importCSV(){document.getElementById("csvInput").click();}
+function handleCSV(ev){const f=ev.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{try{importCSVText(rd.result);}catch(e){alert("Could not import this CSV.");}};rd.readAsText(f);ev.target.value="";}
+function importCSVText(text){
+  const rows=parseCSV(text);if(rows.length<2){alert("CSV has no data rows.");return;}
+  const head=rows[0].map(h=>h.trim());const li=name=>head.findIndex(h=>h.toLowerCase()===name.toLowerCase());
+  const ki=li("Kind"),ni=li("Name"),ti=li("Type"),ci=li("Complexity");
+  if(ni<0){alert("CSV needs at least a 'Name' column (with an optional 'Kind' column set to Asset or Shot).");return;}
+  const deptCols=state.departments.map((d,idx)=>({idx,col:head.findIndex(h=>h.trim().toLowerCase()===d.name.toLowerCase())}));
+  let na=0,ns=0;
+  for(let r=1;r<rows.length;r++){const row=rows[r];const kind=(ki>=0?(row[ki]||""):"").trim().toLowerCase();
+    const rec={name:(row[ni]||"").trim(),type:ti>=0?(row[ti]||"").trim():"",diff:ci>=0?(row[ci]||"").trim():"",thumb:"",days:blankDaysN(state.departments.length)};
+    if(!rec.name)continue;
+    deptCols.forEach(dc=>{if(dc.col>=0)rec.days[dc.idx]=+(row[dc.col]||0)||0;});
+    if(kind.indexOf("shot")===0){state.shots.push(rec);ns++;}else{state.assets.push(rec);na++;}}
+  buildBidTable("assets");buildBidTable("shots");updateReadout();autosave();
+  alert("Imported "+na+" asset(s) and "+ns+" shot(s).");
+}
+
 
 /* ---- PDF ---- */
 function exportPDF(){buildPrintDoc();window.print();}
@@ -784,7 +1090,8 @@ function buildPrintDoc(){
     ["Director",p.director],["Client VFX Supervisor",p.clientSup],["Client VFX Producer",p.clientProd],["Currency",cur],
     ["Start / turnover",dt(p.startDate)],["Delivery date",dt(p.deliveryDate)],["Bid due date",dt(p.bidDue)],["Rebate jurisdiction",p.jurisdiction]];
   let h="";
-  h+=`<div class="lh"><div><div class="studio">${esc(state.studio)}</div><div class="loc">VFX bid prepared by ${esc(state.studio)}</div></div><div class="doctype">VFX BID<small>${esc(p.name)} &middot; Bid ${esc(p.bidNo)}</small></div></div>`;
+  const _loc=[workspace.studioTagline,workspace.studioContact].filter(Boolean).join(" \u00b7 ")||("VFX bid prepared by "+studioName());
+  h+=`<div class="lh"><div><div class="studio">${esc(studioName())}</div><div class="loc">${esc(_loc)}</div></div><div class="doctype">VFX BID<small>${esc(p.name)} &middot; Bid ${esc(p.bidNo)}</small></div></div>`;
   h+=`<div class="cover">We appreciate the opportunity to bid on <b>${esc(p.name)}</b>. Below is our finalized ${esc(p.bidType).toLowerCase()} for ${esc(p.client)}. All costs are integrated into the assets, shots and roles with no additional fees outside of these totals.</div>`;
   h+=`<h3>Project</h3><div class="meta">`;meta.forEach(m=>h+=`<div><span class="lab">${esc(m[0])}</span><span class="val">${esc(m[1]||"-")}</span></div>`);h+=`</div>`;
   h+=`<h3>Bid summary</h3><table><tbody>`;
@@ -815,12 +1122,15 @@ function buildPrintDoc(){
   h+=`<h3>Payment schedule</h3><table><thead><tr><th>Milestone</th><th class="n">%</th><th class="n">Amount</th></tr></thead><tbody>`;
   let tot=0;state.payments.forEach(m=>{tot+=+m.pct||0;h+=`<tr><td>${esc(m.label)}</td><td class="n">${pct(m.pct)}</td><td class="n">${money((+m.pct||0)*c.afterDiscount)}</td></tr>`;});
   h+=`<tr class="tot"><td>Total ${cur}</td><td class="n">${pct(tot)}</td><td class="n">${money(c.afterDiscount)}</td></tr></tbody></table>`;
-  h+=`<div class="foot">Generated ${new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"})} &middot; ${esc(state.studio)} &middot; This is a bid estimate, not a contract. Tax rebate is an estimate; confirm with the jurisdiction and your production accountant.</div>`;
-  document.getElementById("printDoc").innerHTML=h;
+  h+=`<div class="foot">Generated ${new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"})} &middot; ${esc(studioName())} &middot; This is a bid estimate, not a contract. Tax rebate is an estimate; confirm with the jurisdiction and your production accountant.</div>`;
+  document.getElementById("printDoc").innerHTML=`<table class="pw"><thead><tr><td><div class="pw-sp"></div></td></tr></thead><tbody><tr><td>${h}</td></tr></tbody><tfoot><tr><td><div class="pw-sp"></div></td></tr></tfoot></table>`;
 }
 
-function renderAll(){document.getElementById("studioName").value=state.studio;
-  renderProject();renderRates();buildBidTable("assets");buildBidTable("shots");renderTotals();updateReadout();}
+function renderAll(){document.getElementById("studioName").value=studioName();renderBidSelect();
+  renderProject();renderRates();buildBidTable("assets");buildBidTable("shots");renderTotals();updateReadout();
+  const act=document.querySelector(".navitem.on");
+  if(act&&act.dataset.tab==="charts")renderCharts();
+  if(act&&act.dataset.tab==="compare")renderCompare();}
 renderAll();
 </script>
 </body>
