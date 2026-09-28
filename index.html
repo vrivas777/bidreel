@@ -584,7 +584,7 @@ function renderProject(){
     field("Client / Studio",P.client,"text",v=>{P.client=v;renderBidSelect();}),
     field("Bid number",P.bidNo,"text",v=>P.bidNo=v),
     field("Bid type",P.bidType,"select",v=>P.bidType=v,{options:["Script bid","Temp bid","Final bid","Change order"]}),
-    field("Production type",P.prodType,"select",v=>P.prodType=v,{options:["Feature Film","TV Episodic","Streaming Series","Commercial","Trailer","Episodic Block"]}),
+    field("Production type",P.prodType,"select",v=>P.prodType=v,{options:["Feature Film","TV Episodic","Streaming Series","Commercial","Trailer","Episodic Block", "Shot Film", "Music Video"]}),
     field("Director",P.director,"text",v=>P.director=v),
     field("Client VFX Supervisor",P.clientSup,"text",v=>P.clientSup=v),
     field("Client VFX Producer",P.clientProd,"text",v=>P.clientProd=v));
